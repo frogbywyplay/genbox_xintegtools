@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<element name="target" xmlns="http://relaxng.org/ns/structure/1.0">
+  <element name="packages">
+  <oneOrMore>
+    <externalRef href="package.rng"/>
+  </oneOrMore>
+  </element>
+
+</element>
+

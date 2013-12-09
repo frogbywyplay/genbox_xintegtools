@@ -1,0 +1,187 @@
+#!/usr/bin/python2.5
+#
+# Copyright (C) 2006-2013 Wyplay, All Rights Reserved.
+#
+
+import os, re
+
+from optparse import OptionParser, Option, OptionGroup
+
+from xintegtools.xbump import XbumpCmdline
+from xintegtools.xbump.consts import XBUMP_DEF_NAMING
+
+from xutils.output import verbose
+
+class MultiOption(Option):
+        ACTIONS = Option.ACTIONS + ("multi_store",)
+        STORE_ACTIONS = Option.STORE_ACTIONS + ("multi_store",)
+        TYPED_ACTIONS = Option.TYPED_ACTIONS + ("multi_store",)
+        ALWAYS_TYPED_ACTIONS = Option.ALWAYS_TYPED_ACTIONS + ("multi_store",)
+
+        def take_action(self, action, dest, opt, value, values, parser):
+                if action == "multi_store":
+                        lvalue = value.split(",")
+                        values.ensure_value(dest, []).extend(lvalue)
+                else:
+                        Option.take_action(self, action, dest, opt, value, values, parser)
+
+options_default=[
+                Option('-v',  '--verbose',
+                       action='store_true',
+                       dest='verbose',
+                       help='Turn on verbose mode'),
+                ]
+
+options_bump=   [
+                Option('-d', '--del',
+                       action="store_true",
+                       dest='delete',
+                       help='Delete the bumped ebuild'),
+                Option('-e', '--edit',
+                       action="store_true",
+                       dest='edit',
+                       help='Edit the new ebuild (EDITOR envvar must be set)'),
+                ] + options_default
+
+options_update= [
+                Option('-r', '--rev',
+                       action='store',
+                       dest='rev',
+                       help="Set the revision number (default: latest)"),
+                Option('-f', '--force',
+                       action='store_true',
+                       dest='force',
+                       help='Override ebuild if it already exist'),
+                Option('-t', '--tag',
+                       action='store_true',
+                       dest='tag',
+                       help='Use the tag as ebuild\'s name'),
+                Option(None, '--as',
+                       action='store',
+                       dest='user_version',
+                       help='Use user ebuild\'s name'),
+                [
+                        "Mercurial MQ",
+                        "Mercurial MQ specific options",
+                        Option(None, '--mq-rev',
+                               action='store',
+                               dest='mq_rev',
+                               help='Set the MQ revision number (default: latest)')
+                ],
+                [
+                        "Target ebuilds",
+                        "Target ebuilds specific options",
+                        MultiOption(None, '--ov-rev',
+                                    action='multi_store',
+                                    dest='ov_list',
+                                    help='Fix an overlay revision (syntax: "ov:rev[,ov:rev...]")')
+                ]
+                ] + options_default
+
+options_update_all=[
+                Option('-d', '--dir',
+                       action='store',
+                       dest='dir',
+                       help='Set the search directory (default: current)'),
+                Option('-f', '--force',
+                       action='store_true',
+                       dest='force',
+                       help='Override ebuild if it already exist'),
+                ] + options_default
+
+options_actions=[
+                ('-b', '--bump', 'Bump an ebuild revision (-r#)', options_bump),
+                ('-u', '--update', 'Update an ebuild', options_update),
+                ('-a', '--all', 'Update every ebuild that matches the given regex', options_update_all),
+                ]
+
+def action_parser_callback(option, opt_str, value, parser, *args, **kwargs):
+        sub_parser = OptionParser(usage = "%prog " + "%s [options]" % opt_str)
+
+        setattr(parser.values, "action", option.get_opt_string()[2:])
+        if kwargs.get('opts'):
+                for opt in kwargs['opts']:
+                        if type(opt) == list:
+                                group = OptionGroup(parser=sub_parser,
+                                                    title=opt[0],
+                                                    description=opt[1])
+                                group.add_options(opt[2:])
+                                sub_parser.add_option_group(group)
+                        else:
+                                sub_parser.add_option(opt)
+        (parser.values, rargs) = sub_parser.parse_args(args=parser.rargs, values=parser.values)
+        del parser.rargs[:]
+        parser.rargs.extend(rargs)
+
+
+if __name__ == "__main__":
+        parser = OptionParser(usage = "%prog [action] [options]")
+        parser.set_default('action', None)
+
+        for (short, long, help, sub_opts) in options_actions:
+                parser.add_option(short, long,
+                                  help=help,
+                                  action='callback',
+                                  callback=action_parser_callback,
+                                  callback_kwargs={'opts' : sub_opts})
+        (values, args) = parser.parse_args()
+
+        if not values.action:
+               parser.error('An action is required')
+
+        if values.ensure_value('verbose', False):
+                verbose(True)
+
+        xb = XbumpCmdline()
+
+        action = values.action
+        if action == "bump":
+                if not ( args and len(args) ):
+                        parser.error("ebuild name required to bump")
+                for eb in args:
+                        xb.bump(eb,
+                                values.ensure_value('delete', False),
+                                values.ensure_value('edit', False))
+        elif action == "update":
+                if not ( args and len(args) ):
+                        parser.error("ebuild name required to update")
+                for eb in args:
+
+                        if values.ensure_value('user_version', None) and values.ensure_value('tag', False):
+                                parser.error("--tag and --as are mutually exclusive")
+                        if values.ensure_value('tag', False):
+                                name='tag'
+                        elif values.ensure_value('user_version', None):
+                                name='user:%s' % values.user_version
+                        else:
+                                name=XBUMP_DEF_NAMING
+
+                        rev = values.ensure_value('rev', None)
+
+                        # mercurial-mq specific options handling
+                        mq_rev = values.ensure_value('mq_rev', None)
+                        if mq_rev:
+                                rev = (rev, mq_rev)
+
+                        # target ebuilds specific options
+                        ov_list = values.ensure_value('ov_list', None)
+                        if ov_list:
+                                ov_revs = {}
+                                for ov in ov_list:
+                                        ov_name, ov_rev = ov.split(':')
+                                        ov_revs[ov_name] = ov_rev
+                                rev = (rev, ov_revs)
+                        xb.update(eb,
+                                  rev,
+                                  values.ensure_value('force', False),
+                                  name)
+        elif action == "all":
+                if not ( args and len(args) ):
+                        parser.error("regex required to update")
+                for regex in args:
+                        xb.update_all(regex,
+                                      values.ensure_value('dir' , None),
+                                      values.ensure_value('force', False))
+        else:
+                parser.error("Unknown action")
+

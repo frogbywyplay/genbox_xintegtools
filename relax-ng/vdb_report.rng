@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<element name="target" xmlns="http://relaxng.org/ns/structure/1.0">
+  <element name="packages">
+    <zeroOrMore>
+      <externalRef href="package.rng"/>
+    </zeroOrMore>
+  </element>
+  <element name="orphans">
+    <zeroOrMore>
+      <element name="file">
+        <attribute name="name"/>
+      </element>
+    </zeroOrMore>
+  </element>
+  <element name="collisions">
+    <zeroOrMore>
+      <element name="file">
+        <attribute name="name">
+        <oneOrMore>
+          <element name="package">
+            <attribute name="name"/>
+          </element>
+        </oneOrMore>
+      </element>
+    <zeroOrMore>
+  </element>
+</element>
+

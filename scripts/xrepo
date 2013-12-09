@@ -1,0 +1,71 @@
+#!/usr/bin/python2.5
+#
+# Copyright (C) 2006-2013 Wyplay, All Rights Reserved.
+#
+
+import os, re
+
+from optparse import OptionParser, Option, OptionGroup
+
+from xintegtools.xrepo import XrepoCmdline
+
+from xutils.output import verbose
+
+options_default=[
+                Option('-v',  '--verbose',
+                       action='store_true',
+                       dest='verbose',
+                       help='Turn on verbose mode'),
+                ]
+
+options_actions=[
+                ('-c', '--create', 'Create an empty overlay', options_default),
+                ]
+
+def action_parser_callback(option, opt_str, value, parser, *args, **kwargs):
+        sub_parser = OptionParser(usage = "%prog " + "%s [options]" % opt_str)
+
+        setattr(parser.values, "action", option.get_opt_string()[2:])
+        if kwargs.get('opts'):
+                for opt in kwargs['opts']:
+                        if type(opt) == list:
+                                group = OptionGroup(parser= sub_parser,
+                                                    title=opt[0],
+                                                    description=opt[1])
+                                group.add_options(opt[2:])
+                                sub_parser.add_option_group(group)
+                        else:
+                                sub_parser.add_option(opt)
+        (parser.values, rargs) = sub_parser.parse_args(args=parser.rargs, values=parser.values)
+        del parser.rargs[:]
+        parser.rargs.extend(rargs)
+
+
+if __name__ == "__main__":
+        parser = OptionParser(usage = "%prog [action] [options]")
+        parser.set_default('action', None)
+
+        for (short, long, help, sub_opts) in options_actions:
+                parser.add_option(short, long,
+                                  help=help,
+                                  action='callback',
+                                  callback=action_parser_callback,
+                                  callback_kwargs={'opts' : sub_opts})
+        (values, args) = parser.parse_args()
+
+        if not values.action:
+               parser.error('An action is required')
+
+        if values.ensure_value('verbose', False):
+                verbose(True)
+
+        xr = XrepoCmdline()
+
+        action = values.action
+        if action == "create":
+                if not ( args and len(args) ):
+                        parser.error("destination directory require")
+                xr.create(args[0])
+        else:
+                parser.error("Unknown action")
+

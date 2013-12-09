@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<element name="package" xmlns="http://relaxng.org/ns/structure/1.0">
+  <attribute name="name"/>
+  <attribute name="version"/>
+  <attribute name="category"/>
+
+  <optional>
+    <oneOrMore>
+      <element name="license">
+          <attribute name="name"/>
+          <optional>
+            <attribute name="choosen"/>
+          </optional>
+      </element>
+    </oneOrMore>
+  </optional>
+  <optional>
+    <element name="public"><empty/></element>
+  </optional>
+
+  <optional>
+    <element name="use_flags">
+      <zeroOrMore>
+        <element name="use">
+            <attribute name="name"/>
+          <optional>
+            <attribute name="val">
+              <choice>
+                <value>1</value>
+                <value>0</value>
+              </choice>
+            </attribute>
+          </optional>
+        </element>
+      </zeroOrMore>
+    </element>
+  </optional>
+
+  <element name="contents">
+    <zeroOrMore>
+      <element name="file">
+        <attribute name="name"/>
+        <attribute name="type">
+          <choice>
+            <value>obj</value>
+            <value>dir</value>
+            <value>sym</value>
+            <value>fif</value>
+            <value>dev</value>
+          </choice>
+        </attribute>
+
+        <!-- Checksum and mtime -->
+        <optional>
+          <element name="md5"><text/></element>
+        </optional>
+        <optional>
+          <element name="mtime"><text/></element>
+        </optional>
+
+        <!-- report resume -->
+        <optional>
+          <element name="report">
+            <oneOrMore>
+              <choice>
+                <element name="EMTIME">
+                  <attribute name="mtime"/>
+                </element>
+                <element name="ECHKSUM">
+                  <attribute name="md5"/>
+                </element>
+                <element name="ENOENT"><empty/></element>
+                <element name="UNKNOWN"><empty/></element>
+              </choice>
+            </oneOrMore>
+          </element>
+        </optional>
+      </element>
+    </zeroOrMore>
+  </element>
+  <optional>
+    <element name="log">
+      <zeroOrMore>
+        <element name="info"><text/></element>
+        <element name="log"><text/></element>
+        <element name="warn"><text/></element>
+        <element name="qa"><text/></element>
+        <element name="error"><text/></element>
+      </zeroOrMore>
+    </element>
+  </optional>
+  <optional>
+    <element name="scm">
+      <attribute name="type">
+	<choice>
+	  <value>git</value>
+	  <value>mercurial</value>
+	</choice>
+      </attribute>
+      <zeroOrMore>
+	<element name="uri"><text/></element>
+	<element name="branch"><text/></element>
+	<element name="revision"><text/></element>
+      </zeroOrMore>
+    </element>
+  </optional>
+</element>
+

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<element name="collisions" xmlns="http://relaxng.org/ns/structure/1.0">
+  <oneOrMore>
+    <element name="file">
+      <attribute name="name"/>
+      <oneOrMore>
+        <element name="package">
+          <attribute name="name"/>
+        </element>
+      </oneOrMore>
+    </element>
+  </oneOrMore>
+</element>

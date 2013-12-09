@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<element name="package" xmlns="http://relaxng.org/ns/structure/1.0">
+  <attribute name="name"/>
+  <attribute name="category"/>
+
+  <optional>
+    <element name="version">
+      <oneOrMore>
+        <element name="old"><text/></element>
+        <element name="new"><text/></element>
+      </oneOrMore>
+    </element>
+  </optional>
+
+  <optional>
+    <element name="use_flags">
+      <zeroOrMore>
+        <element name="use">
+            <attribute name="name"/>
+          <optional>
+            <attribute name="val">
+              <choice>
+                <value>1</value>
+                <value>0</value>
+              </choice>
+            </attribute>
+          </optional>
+          <attribute name="mod">
+            <choice>
+              <value>new</value>
+              <value>mod</value>
+              <value>rem</value>
+            </choice>
+          </attribute>
+        </element>
+      </zeroOrMore>
+    </element>
+  </optional>
+
+  <optional>
+    <element name="public">
+      <attribute name="val">
+        <choice>
+          <value>1</value>
+          <value>0</value>
+        </choice>
+      </attribute>
+    </element>
+  </optional>
+
+  <optional>
+    <element name="license">
+      <element name="old"><text/></element>
+      <element name="new"><text/></element>
+    </element>
+  </optional>
+
+</element>
+

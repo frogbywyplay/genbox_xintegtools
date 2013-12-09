@@ -1,0 +1,146 @@
+#!/usr/bin/python2.5
+#
+# Copyright (C) 2006-2013 Wyplay, All Rights Reserved.
+#
+
+import sys, os
+
+from optparse import OptionParser, Option
+
+from xutils.output import die, verbose, color
+
+from xintegtools.xreport import XReportCmdline, XReportXMLOutput, XReportTXTOutput, XCompareCmdline, XCompareTXTOutput, XCompareXMLOutput
+
+options_default=[
+                Option('-v',  '--verbose',
+                       action='store_true',
+                       dest='verbose',
+                       help='Turn on verbose mode'),
+                ]
+
+options_output=[
+                Option('-x', '--xml',
+                       action='store_true',
+                       dest='xml_output',
+                       help='Outputs xml data'),
+                Option('-o', '--output',
+                       action='store',
+                       dest='ofile',
+                       help='Output in a file'),
+                Option('-n', '--nocolor',
+                       action='store_true',
+                       dest='nocolor',
+                       help='B&W output (avaiable in TXT mode only)')
+               ]
+
+options_report=[
+                Option('-c', '--vdb-check',
+                       action='store_true',
+                       dest='vdb_check',
+                       help='Check files in vdb against installed files'),
+                Option('-e', '--errors-only',
+                       action='store_true',
+                       dest='errors_only',
+                       help='Only print errors'),
+
+                ] + options_output + options_default
+
+options_compare = options_output + options_default
+
+options_actions=[
+                ('-r', '--report', 'Create a target report.', options_report),
+                ('-c', '--compare', 'Compare two XML reports', options_compare)
+                ]
+
+def action_parser_callback(option, opt_str, value, parser, *args, **kwargs):
+        sub_parser = OptionParser(usage = "%prog " + "%s [options]" % opt_str)
+
+        setattr(parser.values, "action", option.get_opt_string()[2:])
+        if kwargs.get('opts'):
+                for opt in kwargs['opts']:
+                        sub_parser.add_option(opt)
+        (parser.values, rargs) = sub_parser.parse_args(args=parser.rargs, values=parser.values)
+        del parser.rargs[:]
+        parser.rargs.extend(rargs)
+
+def file_open(file, mode):
+        if file.endswith('.bz2'):
+                import bz2
+                return bz2.BZ2File(file, mode)
+        elif file.endswith('.gz'):
+                import gzip
+                return gzip.open(file, mode)
+        else:
+                return open(file, mode)
+
+if __name__ == "__main__":
+        parser = OptionParser(usage = "%prog [options]")
+        parser.set_default('action', None)
+        
+        for (short, long, help, sub_opts) in options_actions:
+                parser.add_option(short, long,
+                                  help=help,
+                                  action='callback',
+                                  callback=action_parser_callback,
+                                  callback_kwargs={'opts' : sub_opts})
+        (values, args) = parser.parse_args()
+
+        if not values.action:
+                parser.print_help()
+                parser.error('An action is required')
+
+        if values.ensure_value('verbose', False):
+                verbose(True)
+        
+        output_file = values.ensure_value('ofile', None)
+        if output_file:
+                output_file = file_open(output_file, 'w')
+        else:
+                output_file = sys.stdout
+
+        if values.ensure_value('nocolor', False):
+                color.nocolor()
+
+        if values.action == "report":
+                errors_only = values.ensure_value('errors_only', False)
+
+                if values.ensure_value('xml_output', False):
+                        output = XReportXMLOutput(errors_only)
+                else:
+                        output = XReportTXTOutput(errors_only)
+
+                root = os.getenv("ROOT", None)
+                portage_configroot = os.getenv("PORTAGE_CONFIGROOT", None)
+
+                rep = XReportCmdline(root, portage_configroot)
+
+                rep.vdb_create()
+
+                if values.ensure_value('vdb_check', False):
+                        rep.vdb_check()
+
+                output.process(rep, output_file)
+
+        elif values.action == "compare":
+                if not (args and (len(args) == 2)):
+                        parser.error("two xml files required for comparison")
+
+                if values.ensure_value('xml_output', False):
+                        output = XCompareXMLOutput()
+                else:
+                        output = XCompareTXTOutput()
+
+                input1 = file_open(args[0], 'r')
+                input2 = file_open(args[1], 'r')
+                cmp = XCompareCmdline(input1, input2)
+                cmp.compare()
+                input1.close()
+                input2.close()
+                output.process(cmp, output_file)
+        else:
+                parser.error("unknown action")
+
+        if values.ensure_value('ofile', None):
+                output_file.close()
+
+

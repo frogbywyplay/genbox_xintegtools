@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<element name="profile" xmlns="http://relaxng.org/ns/structure/1.0">
+      <attribute name="name"/>
+      <attribute name="version"/>
+      <attribute name="arch"/>
+      <oneOrMore>
+        <element name="overlay">
+          <attribute name="name"/>
+          <attribute name="url"/>
+          <attribute name="proto">
+            <choice>
+              <value>svn</value>
+              <value>git</value>
+              <value>mercurial</value>
+            </choice>
+          </attribute>
+          <attribute name="version"/>
+        </element>
+      </oneOrMore>
+      <optional>
+        <element name="use_flags">
+          <zeroOrMore>
+            <element name="use">
+              <attribute name="name"/>
+              <optional>
+                <attribute name="val">
+                  <choice>
+                    <value>1</value>
+                    <value>0</value>
+                  </choice>
+                </attribute>
+              </optional>
+            </element>
+          </zeroOrMore>
+        </element>
+      </optional>
+</element>
+
