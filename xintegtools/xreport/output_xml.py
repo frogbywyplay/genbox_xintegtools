@@ -122,11 +122,14 @@ class XReportXMLOutput(XReportOutput):
                 if pkg.scm:
                         xml_scm = etree.Element("scm", type=pkg.scm['type'])
                         xml_pkg.append(xml_scm)
-                        for ii in ["uri", "branch", "revision"]:
-                                scm_elt = etree.Element(ii)
-                                scm_elt.text = pkg.scm[ii]
-                                xml_scm.append(scm_elt)
-                
+                        for ii in ["uri", "group", "branch", "revision"]:
+                                try:
+                                        scm_elt = etree.Element(ii)
+                                        scm_elt.text = pkg.scm[ii]
+                                        xml_scm.append(scm_elt)
+                                except KeyError, e:
+                                        if e.message != 'group':
+                                                raise e
 
         def _collisions(self, collisions, output_file):
                 if not collisions or len(collisions) == 0:

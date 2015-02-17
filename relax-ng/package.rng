@@ -99,6 +99,7 @@
       </attribute>
       <zeroOrMore>
 	<element name="uri"><text/></element>
+	<element name="group"><text/></element>
 	<element name="branch"><text/></element>
 	<element name="revision"><text/></element>
       </zeroOrMore>

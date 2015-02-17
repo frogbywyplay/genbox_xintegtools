@@ -234,17 +234,16 @@ class XPackage(object):
         
         def _load_git(self, vdbdir):
                 scm = {'type': 'git'}
-                try:
-                        for kk, vv in [('uri', 'EGIT_REPO_URI'),
-                                       ('branch', 'EGIT_BRANCH'),
-                                       ('revision', 'EGIT_REV')]:
+                for kk, vv in [('uri', 'EGIT_REPO_URI'),
+                               ('group', 'EGIT_GROUP'),
+                               ('branch', 'EGIT_BRANCH'),
+                               ('revision', 'EGIT_REV')]:
                                 # split is to avoid extra '\n'
+                        try:
                                 scm[kk] = readfile('%s/%s' % (vdbdir, vv), True).split()[0]
-                except IOError:
-                        # don't know what to do
-                        pass
-                else:
-                        self.scm = scm
+                        except IOError:
+                                pass #skip missing files
+                self.scm = scm
                 return
         
         def _load_scm(self, vdbdir):
