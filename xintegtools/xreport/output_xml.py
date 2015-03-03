@@ -128,8 +128,7 @@ class XReportXMLOutput(XReportOutput):
                                         scm_elt.text = pkg.scm[ii]
                                         xml_scm.append(scm_elt)
                                 except KeyError, e:
-                                        if e.message != 'group':
-                                                raise e
+                                        pass
 
         def _collisions(self, collisions, output_file):
                 if not collisions or len(collisions) == 0:
