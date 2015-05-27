@@ -1,17 +1,17 @@
 #
 # Copyright (C) 2006-2014 Wyplay, All Rights Reserved.
 # This file is part of xintegtools.
-# 
+#
 # xintegtools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # xintegtools is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; see file COPYING.
 # If not, see <http://www.gnu.org/licenses/>.
@@ -28,7 +28,7 @@ from consts import XBUMP_DEF_NAMING
 class XbumpCmdline(Xbump):
         def __init__(self):
                 return
-        
+
         def update_all(self, pkg, dir, force=False):
                 try:
                         self.pkg_re = re.compile(pkg)
@@ -44,7 +44,7 @@ class XbumpCmdline(Xbump):
                                    xb.pkg_re.search(file):
                                         ebuild = "%s/%s" % (dirname, file)
                                         try:
-                                                ebuild = Xbump.update(xb, ebuild, None, xb.force)
+                                                ebuild = Xbump.update(xb, ebuild, None, None, xb.force)
                                                 info(error_fmt(ebuild, "CREATED", None))
                                         except XbumpError, e:
                                                 error(str(e))
@@ -59,9 +59,9 @@ class XbumpCmdline(Xbump):
                 del self.pkg_re
                 del self.force
 
-        def update(self, file, version=None, force=False, name=XBUMP_DEF_NAMING):
+        def update(self, file, version=None, branch_name=None, force=False, name=XBUMP_DEF_NAMING):
                 try:
-                        ebuild = Xbump.update(self, file, version, force, name)
+                        ebuild = Xbump.update(self, file, version, branch_name, force, name)
                         info(error_fmt(ebuild, "CREATED", None))
                 except XbumpError, e:
                         error(str(e))

@@ -1,17 +1,17 @@
 #
 # Copyright (C) 2006-2014 Wyplay, All Rights Reserved.
 # This file is part of xintegtools.
-# 
+#
 # xintegtools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # xintegtools is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; see file COPYING.
 # If not, see <http://www.gnu.org/licenses/>.
@@ -74,7 +74,7 @@ class XbumpWarn(XbumpError):
 class Xbump(object):
         def __init__(self):
                 return
-        def update(self, file, version=None, force=False, name=XBUMP_DEF_NAMING):
+        def update(self, file, version=None, branch_name=None, force=False, name=XBUMP_DEF_NAMING):
                 if not os.path.isfile(file):
                         raise XbumpError(file, "No such file")
 
@@ -84,6 +84,12 @@ class Xbump(object):
 
                 if not eb_scm.is_template():
                         raise XbumpError(os.path.basename(file), 'Not a template')
+
+                if branch_name:
+                        try:
+                                eb_scm.set_branch(branch_name)
+                        except XUtilsError, e:
+                                raise XbumpError(eb_scm.get_name(), str(e), e.get_error_log())
 
                 if version is None:
                         try:
@@ -135,7 +141,7 @@ class Xbump(object):
                         eb.pr = 'r1'
 
                 vinfo("Bumping to %s" % eb.get_name())
-                
+
                 eb.write()
 
                 if edit:

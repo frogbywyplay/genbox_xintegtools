@@ -44,6 +44,10 @@ options_bump=   [
                 ] + options_default
 
 options_update= [
+                Option('-b', '--branch',
+                       action='store',
+                       dest='branch_name',
+                       help="Overwrite the branch name"),
                 Option('-r', '--rev',
                        action='store',
                        dest='rev',
@@ -156,6 +160,7 @@ if __name__ == "__main__":
                         else:
                                 name=XBUMP_DEF_NAMING
 
+                        branch_name = values.ensure_value('branch_name', None)
                         rev = values.ensure_value('rev', None)
 
                         # mercurial-mq specific options handling
@@ -173,6 +178,7 @@ if __name__ == "__main__":
                                 rev = (rev, ov_revs)
                         xb.update(eb,
                                   rev,
+                                  branch_name,
                                   values.ensure_value('force', False),
                                   name)
         elif action == "all":
