@@ -64,6 +64,13 @@ def action_parser_callback(option, opt_str, value, parser, *args, **kwargs):
         parser.rargs.extend(rargs)
 
 def file_open(file, mode):
+        try:
+                if file.startswith("http"):
+                        import urllib
+                        (file, header) = urllib.urlretrieve(file)
+        except ContentTooShortError, e:
+                die("Error: Unable to fetch remote file: %s"%str(e))
+
         if file.endswith('.bz2'):
                 import bz2
                 return bz2.BZ2File(file, mode)
