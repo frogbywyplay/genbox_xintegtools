@@ -20,15 +20,8 @@
 
 import os, errno
 
-from sys import version_info
-
 from pkgsplit import pkgsplit
-
-if version_info[0:2] == (2, 5):
-        from hashlib import md5
-elif version_info[0:2] == (2, 4):
-        from md5 import md5
-
+from hashlib import md5
 from report_utils import readfile
 
 def md5sum(fname):
@@ -51,7 +44,7 @@ class XPackageFile(object):
                 "EMTIME"
         ]
         def __init__(self, name, type):
-                self.name = name
+                self.name = name.decode('utf-8')
                 self.type = type
                 self.checked = False
                 self.md5sum = None
