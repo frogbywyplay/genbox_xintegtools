@@ -19,7 +19,7 @@
 #
 
 try:
-        from portage_versions import pkgsplit
+        from portage.versions import pkgsplit
 except:
         import re
 

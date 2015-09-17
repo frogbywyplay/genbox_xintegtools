@@ -113,7 +113,7 @@ def find_packages(dir):
 
 setup(
     name = "xintegtools",
-    version = "3.0.0",
+    version = "3.0.1",
     description = "Xintegtools for genbox",
     author = "Wyplay",
     author_email = "noreply@wyplay.com",

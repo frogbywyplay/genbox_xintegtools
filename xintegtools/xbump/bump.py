@@ -18,10 +18,9 @@
 #
 #
 
-import os, sys, exceptions, re
-sys.path.insert(0, "/usr/lib/portage/pym")
+import os, exceptions, re
 
-from portage_versions import pkgsplit
+from portage.versions import pkgsplit
 
 from xutils.ebuild import ebuild_factory, XEbuild
 
