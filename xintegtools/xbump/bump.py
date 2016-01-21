@@ -96,6 +96,13 @@ class Xbump(object):
                                 version = eb_scm.get_latest()
                         except XUtilsError, e:
                                 raise XbumpError(eb_scm.get_name(), str(e), e.get_error_log())
+                elif isinstance(version, tuple):
+                        version = list(version)
+                        if version[0] is None:
+                                try:
+                                        version[0] = eb_scm.get_latest()[0]
+                                except XUtilsError, e:
+                                        raise XbumpError(eb_scm.get_name(), str(e), e.get_error_log())
 
                 try:
                         eb_scm.set_version(version, True, name=name)
