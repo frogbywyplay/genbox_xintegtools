@@ -18,6 +18,6 @@
 #
 #
 
-from bump import Xbump, XbumpWarn, XbumpError
-from cmdline import XbumpCmdline
+from ebuild_updater import TargetEbuildUpdater
+from utils import error, info, warning
 

@@ -32,39 +32,41 @@ packages = [
             'xintegtools.xbump',
             'xintegtools.xchecker',
             'xintegtools.xreport',
-            'xintegtools.xbug',
-            'xintegtools.xrepo',
            ]
 
 class TestCoverage(object):
-        def __init__(self):
-                try:
-                        import coverage
-                        self.cov = coverage
-                except:
-                        print "Can't find the coverage module"
-                        self.cov = None
-                        return
-        def start(self):
-                if not self.cov:
-                        return
-                self.cov.erase()
-                self.cov.start()
-        def stop(self):
-                if not self.cov:
-                        return
-                self.cov.stop()
-        def report(self):
-                if not self.cov:
-                        return
-                print "\nCoverage report:"
-                report_list = []
-                for package in packages:
-                        for root, dir, files in os.walk(package):
-                                for file in files:
-                                        if file.endswith('.py'):
-                                                report_list.append("%s/%s" % (root, file))
-                self.cov.report(report_list)
+
+    def __init__(self):
+        try:
+            import coverage
+            self.cov = coverage
+        except:
+            print "Can't find the coverage module"
+            self.cov = None
+            return
+
+    def start(self):
+        if not self.cov:
+            return
+        self.cov.erase()
+        self.cov.start()
+
+    def stop(self):
+        if not self.cov:
+            return
+        self.cov.stop()
+
+    def report(self):
+        if not self.cov:
+            return
+        print "\nCoverage report:"
+        report_list = []
+        for package in packages:
+            for root, dir, files in os.walk(package):
+                for file in files:
+                    if file.endswith('.py'):
+                        report_list.append("%s/%s" % (root, file))
+        self.cov.report(report_list)
 
 class TestCommand(Command):
     user_options = [ ( 'coverage', 'c', 'Enable coverage output' ) ]
@@ -82,8 +84,8 @@ class TestCommand(Command):
         Finds all the tests modules in tests/, and runs them.
         '''
         if self.coverage:
-                cov = TestCoverage()
-                cov.start()
+            cov = TestCoverage()
+            cov.start()
 
         testfiles = [ ]
         for t in glob(pjoin(self._dir, 'tests', '*.py')):
@@ -97,12 +99,11 @@ class TestCommand(Command):
         ts = t.run(tests)
 
         if self.coverage:
-                cov.stop()
-                cov.report()
-
+            cov.stop()
+            cov.report()
+	
 	if not ts.wasSuccessful():
-		sys.exit(1)
-
+            sys.exit(1)
 
 def find_packages(dir):
     packages = []
@@ -113,7 +114,7 @@ def find_packages(dir):
 
 setup(
     name = "xintegtools",
-    version = "3.0.1",
+    version = "3.1.0",
     description = "Xintegtools for genbox",
     author = "Wyplay",
     author_email = "noreply@wyplay.com",
@@ -121,18 +122,9 @@ setup(
     packages = packages,
     scripts = [
                "scripts/xbump",
-               "scripts/xchecker",
                "scripts/xreport",
-               "scripts/xbug",
-               "scripts/xrepo",
-               "scripts/xdevprofile",
-               "scripts/xprofilestack",
               ],
-    data_files = [
-                  ('/usr/share/xintegtools/xrepo/licenses', [ 'data/licenses/Wyplay' ]),
-                  ('/usr/share/xintegtools/xrepo', [ 'data/arch.list' ]),
-                 ],
-    long_description = """xintegtools for genbox like xbump, xreport""",
+    long_description = """xintegtools for genbox like xbump, xreport""", 
     cmdclass = { 'test' : TestCommand }
 )
 
