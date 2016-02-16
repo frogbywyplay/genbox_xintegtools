@@ -137,7 +137,7 @@ class TargetEbuildUpdater(object):
         return my_version
 
     def release_ebuild(self, version, force = False):
-        filename = '%s/%s/%s-%s.ebuild' % (self.template.overlay, self.template.category, self.template.name, version)
+        filename = '%s/%s/%s/%s-%s.ebuild' % (self.template.overlay, self.template.category, self.template.name, self.template.name, version)
         if self.data.write_into(filename, force):
             return filename
         return str()
