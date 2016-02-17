@@ -28,7 +28,7 @@ class GitRemote(object):
     def __init__(self, repository):
         self.repository = repository
 
-    def __run_cmd(self, cmd):
+    def _run_cmd(self, cmd):
         process = Popen(cmd, shell = False, stdout = PIPE, stderr = STDOUT)
         (stdoutdata, stderrdata) = process.communicate()
         if process.returncode != 0:
@@ -45,7 +45,7 @@ class GitRemote(object):
         if not tag:
             return False
         cmd = ['git', 'ls-remote', '--tags', self.repository['uri'], tag]
-        (stdoutdata, stderrdata) = self.__run_cmd(cmd)
+        (stdoutdata, stderrdata) = self._run_cmd(cmd)
         if stdoutdata and stdoutdata.strip().endswith(tag):
             return True
         return False
@@ -60,7 +60,7 @@ class GitRemote(object):
             warning('Try to resolve empty tag')
             return str()
         cmd = ['git', 'ls-remote', '--tags', self.repository['uri'], tag]
-        (stdoutdata, stderrdata) = self.__run_cmd(cmd)
+        (stdoutdata, stderrdata) = self._run_cmd(cmd)
         if stdoutdata and stdoutdata.strip().endswith(tag):
             return stdoutdata[:40]
         return str()
@@ -73,7 +73,7 @@ class GitRemote(object):
             warning('%s repositories are currently not supported.' % self.repository['proto'])
             return tags
         cmd = ['git', 'ls-remote', '--tags', self.repository['uri']]
-        (stdoutdata, stderrdata) = self.__run_cmd(cmd)
+        (stdoutdata, stderrdata) = self._run_cmd(cmd)
         if stdoutdata:
             for line in stdoutdata.splitlines():
                 tags[line.split('refs/tags/')[-1]] = line[:40]
@@ -100,7 +100,7 @@ class GitRemote(object):
             branch = self.repository['branch']
             if not branch: return False
         cmd = ['git', 'ls-remote', '--heads', self.repository['uri'], branch]
-        (stdoutdata, stderrdata) = self.__run_cmd(cmd)
+        (stdoutdata, stderrdata) = self._run_cmd(cmd)
         if stdoutdata and stdoutdata.strip().endswith(branch):
             return True
         return False
@@ -115,7 +115,7 @@ class GitRemote(object):
             branch = self.repository['branch']
             if not branch: return str()
         cmd = ['git', 'ls-remote', '--heads', self.repository['uri'], branch]
-        (stdoutdata, stderrdata) = self.__run_cmd(cmd)
+        (stdoutdata, stderrdata) = self._run_cmd(cmd)
         if stdoutdata and stdoutdata.strip().endswith(branch):
             return stdoutdata[:40]
         return str()
@@ -128,7 +128,7 @@ class GitRemote(object):
             warning('%s repositories are currently not supported.' % self.repository['proto'])
             return branches
         cmd = ['git', 'ls-remote', '--heads', self.repository['uri']]
-        (stdoutdata, stderrdata) = self.__run_cmd(cmd)
+        (stdoutdata, stderrdata) = self._run_cmd(cmd)
         if stdoutdata:
             for line in stdoutdata.splitlines():
                 branches[line.split('refs/heads/')[-1]] = line[:40]
