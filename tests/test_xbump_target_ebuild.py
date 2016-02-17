@@ -19,15 +19,15 @@
 #
 #
 
-import mock
-import unittest
+from mock import MagicMock, patch
 from os.path import dirname, realpath
 from sys import modules, path
+from unittest import TestCase, main
 
 path.insert(0, realpath(dirname(modules[__name__].__file__) + '/..'))
 from xintegtools.xbump.target_ebuild import TargetEbuildContent
 
-class TargetEbuildContentTester(unittest.TestCase):
+class TargetEbuildContentTester(TestCase):
 
     data = """# Header & copyright\nEAPI=5\n
 inherit target-r1\n
@@ -115,12 +115,20 @@ XOV_BOARD_URI=%(xov_board_uri)s
         for value in other_values.values():
             self.assertIn(value, my_ebuild.data)
 
-    #@mock.patch.object('os.path', 'exists')
-    #def test_write_into(self, mock_exists):
-    #    my_ebuild = TargetEbuildContent(self.data % self.data_values)
+    @patch('xintegtools.xbump.target_ebuild.open')
+    @patch('xintegtools.xbump.target_ebuild.exists')
+    def test_write_into(self, mock_exists, mock_open):
+        my_ebuild = TargetEbuildContent(self.data % self.data_values)
 
-    #    mock_exists.return_value = True
-    #    self.assertFalse(my_ebuild.write_into('mock', False))
+        mock_exists.return_value = True
+        self.assertFalse(my_ebuild.write_into('mock', force = False))
+
+        mock_open.return_value = MagicMock(spec = file)
+        self.assertTrue(my_ebuild.write_into('mock', force = True))
+
+        mock_exists.return_value = False
+        mock_open.side_effect = IOError(13)
+        self.assertFalse(my_ebuild.write_into('mock'))
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
