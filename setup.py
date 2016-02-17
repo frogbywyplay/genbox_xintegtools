@@ -88,7 +88,7 @@ class TestCommand(Command):
             cov.start()
 
         testfiles = [ ]
-        for t in glob(pjoin(self._dir, 'tests', '*.py')):
+        for t in glob(pjoin(self._dir, 'tests', 'test_xbump_*.py')):
             if not t.endswith('__init__.py'):
                 testfiles.append('.'.join(
                     ['tests', splitext(basename(t))[0]])
