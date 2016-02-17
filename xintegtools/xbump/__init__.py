@@ -19,5 +19,5 @@
 #
 
 from ebuild_updater import TargetEbuildUpdater
-from utils import error, info, warning
+from utils import error, info, warning, InvalidArgument
 

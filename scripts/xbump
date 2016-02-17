@@ -3,7 +3,7 @@
 
 from argparse import ArgumentParser
 from sys import exit
-from xintegtools.xbump import TargetEbuildUpdater, error, info, warning
+from xintegtools.xbump import InvalidArgument, TargetEbuildUpdater, error, info, warning
 
 if __name__ == '__main__':
     xbump_parser = ArgumentParser(description = 'Helper to release target ebuilds.')
@@ -18,7 +18,11 @@ if __name__ == '__main__':
     revision_parser.add_argument('-V', '--version', metavar='VERSION', default = str(), help = 'Use %(metavar)s as ebuild\'s version')
 
     args = xbump_parser.parse_args()
-    updater = TargetEbuildUpdater(args.ebuild, verbose = args.verbose)
+    try:
+        updater = TargetEbuildUpdater(args.ebuild, verbose = args.verbose)
+    except InvalidArgument, e:
+        error(e.message)
+        exit(1)
     if not updater.is_target_ebuild():
         error('%s does not conform with target ebuild definition.' % updater.template.abspath)
         exit(1)
