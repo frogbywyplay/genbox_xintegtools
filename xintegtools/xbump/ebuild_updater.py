@@ -91,11 +91,10 @@ class TargetEbuildUpdater(object):
                 return False
         return True
 
-    def update_overlays(self, overlays):
+    def update_overlays(self, overlays = str()):
         overlays_to_update = dict()
-        if not overlays:
-            return True
         for overlay in overlays.split(','):
+            if not overlay: continue
             [name, revision] = overlay.split(':')
             if name in self.data.overlays.keys():
                 # TODO: check revision exists in overlay for concerned branch
@@ -105,9 +104,18 @@ class TargetEbuildUpdater(object):
                 overlays_to_update[name] = revision
             else:
                 warning('Skip unknown overlay %s (not found in %s).' % (name, self.template.abspath))
-        for overlay, revision in overlays_to_update.items():
+        for name, spec in self.data.overlays.items():
+            overlay_revision = str()
+            if name in overlays_to_update.keys():
+                overlay_revision = overlays_to_update[name]
+            else:
+                overlay_revision = GitRemote(spec).resolve_branch()
+            if not overlay_revision:
+                error('Unable to resolve HEAD for branch %s from overlay %s' % (spec['branch'], name))
+                continue
             try:
-                self.data.overlays = {overlay: revision}
+                self.data.overlays = {name: overlay_revision}
+                if self.verbose: info('Update overlay %s from %s to %s' % (name, spec['revision'], overlay_revision))
             except ValueError, e:
                 error(e.message)
         return True
