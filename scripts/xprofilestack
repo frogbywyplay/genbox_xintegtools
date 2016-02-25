@@ -1,0 +1,17 @@
+#!/usr/bin/python2.5
+
+from portage import config
+from portage_const import INCREMENTALS
+from os import getenv
+from os.path import exists
+from sys import exit
+
+current_target = getenv('CURRENT_TARGET', 'current')
+target_root = '/usr/targets/' + current_target + '/root'
+if not exists(target_root):
+    print '%s does not exist.' % target_root
+    exit(1)
+
+profile_directories = config(config_root=target_root, target_root=target_root, config_incrementals=INCREMENTALS).profiles
+for directory in profile_directories: print directory
+exit(0)

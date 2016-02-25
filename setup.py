@@ -124,6 +124,7 @@ setup(
                "scripts/xbug",
                "scripts/xrepo",
                "scripts/xdevprofile",
+               "scripts/xprofilestack",
               ],
     data_files = [
                   ('/usr/share/xintegtools/xrepo/licenses', [ 'data/licenses/Wyplay' ]),
