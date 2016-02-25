@@ -1,0 +1,61 @@
+#!/usr/bin/python2.5
+
+try:
+        import xml.etree.ElementTree as etree
+except ImportError:
+        import elementtree.ElementTree as etree
+
+import os
+from xutils.output import die, info
+from subprocess import Popen
+
+TARGET_RELEASE_PATH = "/usr/targets/current/root/etc/target-release"
+TARGETS_PORTDIR = "/usr/local/portage/targets"
+TARGET_PROFILE_BACKUP_PATH = "/usr/targets/current/root/etc/portage_orig"
+
+if __name__ == "__main__":
+    try:
+        target_release = etree.parse(TARGET_RELEASE_PATH)
+    except IOError, e:
+        die ("%s not found"%str(e))
+
+    profile_elt = target_release.getroot()
+
+    try:
+        uses = profile_elt.find("use_flags").findall("use")
+    except Exception, e:
+        die("Unable to find use flags from target release file: %s"%str(e))
+
+    for use in uses:
+        if use.get("name") == "devprofile":
+            break
+    else:
+        die("Your target does not support devprofile use_flag")
+
+    profile_name = profile_elt.get("name")
+    (profile_type, target_name) = profile_name.split("/", 1)
+    profile_version = profile_elt.get("version")
+    profile_arch = profile_elt.get("arch")
+
+    target_ebuild_path = os.path.join(TARGETS_PORTDIR, profile_name, "%s-%s.ebuild"%(target_name, profile_version))
+    info("target ebuild: %s"%target_ebuild_path)
+    info("target profile backup: %s"%TARGET_PROFILE_BACKUP_PATH)
+
+    if not os.path.exists(target_ebuild_path):
+        die("%s Not Found"%target_ebuild_path)
+
+    myenv = os.environ.copy()
+    myenv["USE"] = "devprofile"
+
+    # fetch sources
+    ret = Popen(['/usr/bin/xbuild', target_ebuild_path, "fetch", "setup", "unpack"], bufsize=-1, stdout=None, stderr=None, shell=False, cwd=None, env=myenv).wait()
+    if ret != 0:
+        die("Failed to fetch sources")
+
+    # link profile
+    ret = Popen(['/usr/bin/xbuild', target_ebuild_path, "config"], bufsize=-1, stdout=None, stderr=None, shell=False, cwd=None, env=myenv).wait()
+    if ret != 0:
+        die("Failed to link profile")
+
+
+

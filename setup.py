@@ -123,6 +123,7 @@ setup(
                "scripts/xreport",
                "scripts/xbug",
                "scripts/xrepo",
+               "scripts/xdevprofile",
               ],
     data_files = [
                   ('/usr/share/xintegtools/xrepo/licenses', [ 'data/licenses/Wyplay' ]),
