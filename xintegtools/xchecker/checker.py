@@ -23,40 +23,82 @@ from __future__ import with_statement
 
 from ebuild import Ebuild, InvalidArgument
 from parser import BufferParser, ProfileParser
-from utils import info, error
+from utils import info, error, warning
 
+from os.path import exists
 from re import match
+from subprocess import Popen, PIPE
+from urlparse import urlparse
 
 class ProfileChecker(object):
 
     def __init__(self, target = 'current'):
         self.__profile = ProfileParser(target = 'current')
 
-    def validate_profile(self):
-        """Validate that packages and virtuals files are correctly managed.
+    def __get_target_packages(self, set = 'world', full = True):
+        """ This method is equivalent to run the following shell command to get list of all target packages
+            which would be installed:
+            xmerge --pretend --quiet --columns --color=n world 2> /dev/null | sed -n "/ to /p" | awk '{print $2}'
+            Note: '--nocheck' is required to avoid an infinite loop.
         """
-        info('Processing packages files.')
+        xmerge_pkg_cmd = ['xmerge', '--pretend', '--quiet', '--columns', '--color=n', set]
+        if full: xmerge_pkg_cmd.insert(-1, '--emptytree')
+        p = Popen(xmerge_pkg_cmd, stdout=PIPE, stderr=open('/dev/null', 'w'))
+        (out, err) = p.communicate()
+
+        target_pkg = dict()
+        for line in out.split('\n'):
+            if ' to ' in line and not line.startswith(' * '):
+                array = line[6:].strip().split(' ')
+                pkg = array[0]
+                version = array[1]
+                if pkg.startswith('product-targets'):
+                    continue
+                target_pkg[pkg] = version
+        return target_pkg
+
+    def has_loop(self):
+        profile_directories = self.__profile.stack()
+        if len(set(profile_directories)) == len(profile_directories):
+            return True
+        return False
+
+    def packages(self):
+        """ Return a dict with the following keys:
+            * extra: list atom present in packages but not installed
+            * missing: list atom not present in packages but installed
+            * version: list atom with a given version in packages but installed at another.
+                       dict in the form: 'atom': (version in packages, installed version)
+        """
+        packages_report = {'extra': list(), 'missing': list(), 'version': dict()}
         for package, version in self.__profile.packages.items():
             try:
                 ebuild = Ebuild(package)
                 ebuild_version = '%s-r%d' % (ebuild.version, ebuild.revision) if ebuild.revision > 0 else ebuild.version
                 if version != ebuild_version:
-                    error('%s: expected version in packages: %s - installed version: %s' % (package, version, ebuild.version))
+                    packages_report['version'][package] = (version, ebuild.version)
             except InvalidArgument:
-                error('%s present in packages has no matching ebuild!' % package)
+                packages_report['extra'] += [package]
+        for package, version in self.__get_target_packages().items():
+            if package not in self.__profile.packages.keys():
+                packages_report['missing'] += [package]
+        return packages_report
 
-        info('Processing virtuals files.')
+    def virtuals(self):
+        """ Return a dict with the following keys:
+            * provide: list atom who should provide a virtual but does not set PROVIDE in ebuild.
+                       dict in the form 'virtual': 'atom'
+            * unknown: list atom present in virtuals but without installable ebuilds.
+        """
+        virtuals_report = {'provide': dict(), 'unknown': list()}
         for virtual, depend in self.__profile.virtuals.items():
             try:
                 ebuild = Ebuild(depend)
                 if not ebuild.provide or virtual != ebuild.provide:
-                    error('%s: missing "PROVIDE=%s" in %s' % (depend, virtual, ebuild.abspath))
+                    virtuals_report['provide'][virtual] = depend
             except InvalidArgument:
-                error('%s present in virtuals has no matching ebuild!' % depend)
-
-        def compare_with_installed(self):
-            # check world file before warn
-            pass
+                virtuals_report['unknown'] += [depend]
+        return virtuals_report
 
 class EbuildChecker(object):
 
@@ -65,11 +107,12 @@ class EbuildChecker(object):
     stable_branch = '^((\d+.){2,}\d+)(-stable)$'
     wip_branch = '^wip-C?\d{1,6}_?[\w.-]*$'
 
-    def __init__(self, ebuild):
+    def __init__(self, ebuild, profile):
         self.ebuild = ebuild
         with open(ebuild.abspath) as my_ebuild:
             self.buffer = BufferParser(my_ebuild.readlines())
             my_ebuild.close()
+        self.profile = profile
 
     def is_mercurial(self):
         if not 'mercurial' in self.ebuild.inherited:
@@ -99,54 +142,84 @@ class EbuildChecker(object):
             return False
         return True
 
-    def is_valid_src_uri(self, domain):
+    def uris(self):
+        hosts = list()
         my_restrict = self.ebuild.restrict
-        if not my_restrict:
-            # check GENTOO_MIRRORS
-            pass
-        elif 'mirror' in my_restrict or 'primaryuri' in my_restrict:
-            # just check SRC_URI
-            pass
+
+        if 'mirror' in my_restrict or 'primaryuri' in my_restrict:
+            hosts += self.src_uri_hostnames()
+            return hosts
         elif 'fetch' in my_restrict:
             # nothing to check
-            pass
+            return hosts
+        else:
+            # GENTOO_MIRRORS + SRC_URI
+            for mirror in self.profile.gentoo_mirrors.split():
+                hosts += [urlparse(mirror).hostname]
+            hosts += self.src_uri_hostnames()
+            return hosts
 
-    def check_src_uri(self):
+    def src_uri_hostnames(self):
+        re_mirror = r'^mirror://(?P<mirror>\w[\w.-]*)/.*'
         my_uri = self.ebuild.src_uri
-        if not my_uri:
-            return True
-        if my_uri.startswith('mirror://'):
-            #check 3rdpartymirror
-            return True
-        if domain in my_uri:
-            return True
-        return False
 
-    def check_gentoo_mirrors(self):
-        from os import getenv
-        gentoo_mirrors = getenv('GENTOO_MIRRORS', str())
+        if not my_uri or my_uri is None:
+            return list()
 
-    def __expand_mirror(self, mirror):
+        mirror_match = match(re_mirror, my_uri)
+        if mirror_match:
+            return self.expand_mirror_hostname(mirror_match.group('mirror'))
+        else:
+            return [urlparse(my_uri).hostname]
+
+    def expand_mirror_hostname(self, mirror):
         # parse thirdpartymirrors files to get mirror
-        pass
+        expanded_mirror = list()
+
+        try:
+            mirror_list = self.profile.thirdpartymirrors[mirror]
+        except KeyError:
+            return expanded_mirror
+
+        for mirror in mirror_list:
+            expanded_mirror += [urlparse(mirror).hostname]
+        return expanded_mirror
 
     def scan_filesdir(self):
-        pass
+        import magic
+        from os import stat, walk
+        from os.path import dirname
 
-if __name__ == '__main__':
-    p = ProfileParser()
-    for package in p.packages:
-        try:
-            ebuild = Ebuild(package)
-            checker = EbuildChecker(ebuild)
-            if checker.is_mercurial():
-                error('HG ebuild %s' % ebuild.abspath)
-            elif checker.is_git():
-                if not checker.is_valid_git_branch():
-                    error('Invalid branch in %s' % ebuild.abspath)
-                if not checker.is_valid_git_group(['r7', 'st-sdk2-g6']):
-                    error('Invalid group in %s' % ebuild.abspath)
-            elif not checker.is_valid_src_uri('packages.wyplay.int'):
-                    error('Invalid SRC_URI in %s' % ebuild.abspath)
-        except InvalidArgument:
-            error('Skip unknow package %s' % package)
+        # mimetype dict is of type: mime -> list of filename
+        # size dict is of type: filename -> size in bytes
+        filesdir_map = {'mimetype': dict(),
+                        'size': dict()}
+        filesdir = '%s/files' % dirname(self.ebuild.abspath)
+
+        mime_guess = magic.open(magic.MAGIC_MIME)
+        mime_guess.load()
+        for dirname, sudbirlist, filelist in walk(filesdir):
+            for file in filelist:
+                my_file = '%s/%s' % (dirname, file)
+                mimetype = mime_guess.file(my_file)
+                if mimetype:
+                    if mimetype in my_map.keys():
+                        filesdir_map['mimetype'][mimetype] += [my_file]
+                    else:
+                        filesdir_map['mimetype'][mimetype] = [my_file]
+                size = stat(my_file).st_size
+                if size > 20 * 1024 * 1024:
+                    filesdir_map['size'][my_file] = size
+        return filesdir_map
+
+def check_gentoo_mirrors(gentoo_mirrors, reference_hostname):
+    from os import getenv
+    from urlparse import urlparse
+
+    invalid_mirrors = list()
+
+    for mirror in gentoo_mirrors.split():
+        if urlparse(mirror).hostname != reference_hostname:
+            invalid_mirrors += [mirror]
+    return invalid_mirrors
+
