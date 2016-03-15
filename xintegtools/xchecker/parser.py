@@ -47,12 +47,12 @@ class ProfileParser(object):
     def __init__(self, target = 'current'):
         root = '/' if target == 'host' else '/usr/targets/%s/root/' % getenv('CURRENT_TARGET', 'current')
         self.target = len(root) > 1
-        self.profile_directories = config(config_root = root, target_root = root, config_incrementals = INCREMENTALS).profiles
+        self.profile_config = config(config_root = root, target_root = root, config_incrementals = INCREMENTALS)
         self.__packages = dict()
         self.__virtuals = dict()
 
     def __parse_file(self, filename, parser):
-        for directory in self.profile_directories:
+        for directory in self.profile_config.profiles:
             file = '%s/%s' % (directory, filename)
             if exists(file):
                 f = open(file)
@@ -70,7 +70,7 @@ class ProfileParser(object):
                 f.close()
 
     def stack(self):
-        return self.profile_directories
+        return self.profile_config.profiles
 
     @property
     def packages(self):
@@ -126,6 +126,14 @@ class ProfileParser(object):
 
         self.__parse_file('virtuals', parse_algo)
         return self.__virtuals
+
+    @property
+    def gentoo_mirrors(self):
+        return self.profile_config['GENTOO_MIRRORS']
+
+    @property
+    def thirdpartymirrors(self):
+        return self.profile_config.thirdpartymirrors()
 
 class BufferParser(object):
 
