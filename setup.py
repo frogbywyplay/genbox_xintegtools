@@ -30,6 +30,7 @@ import sys
 packages = [
             'xintegtools',
             'xintegtools.xbump',
+            'xintegtools.xchecker',
             'xintegtools.xreport',
             'xintegtools.xbug',
             'xintegtools.xrepo',
@@ -112,7 +113,7 @@ def find_packages(dir):
 
 setup(
     name = "xintegtools",
-    version = "2.1.6",
+    version = "2.2.0",
     description = "Xintegtools for genbox",
     author = "Wyplay",
     author_email = "noreply@wyplay.com",
@@ -120,6 +121,7 @@ setup(
     packages = packages,
     scripts = [
                "scripts/xbump",
+               "scripts/xchecker",
                "scripts/xreport",
                "scripts/xbug",
                "scripts/xrepo",
@@ -132,5 +134,5 @@ setup(
                  ],
     long_description = """xintegtools for genbox like xbump, xreport""", 
     cmdclass = { 'test' : TestCommand }
-) 
+)
 
