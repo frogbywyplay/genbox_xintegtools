@@ -26,6 +26,7 @@ from portage import create_trees
 from portage_exception import InvalidAtom
 from portage_versions import catpkgsplit
 from os import getenv
+from os.path import basename
 
 class InvalidArgument(ValueError):
     pass
@@ -48,6 +49,9 @@ class Ebuild(object):
 
     def __get(self, value):
         return self.portage_db.aux_get(self.cpv, [value], self._overlay)[0]
+
+    def __str__(self):
+        return '%s::%s' % (self.cpv, basename(self._overlay))
 
     @property
     def category(self):

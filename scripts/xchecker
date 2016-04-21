@@ -1,0 +1,36 @@
+#!/usr/bin/python2.5
+#
+# Copyright (C) 2006-2016 Wyplay, All Rights Reserved.
+#
+
+from xintegtools.xchecker import ProfileParser, validateEbuild, validateProfile, getTargetPackages
+
+from optparse import OptionParser, OptionGroup
+from os import getenv
+
+def main():
+    xchecker_parser = OptionParser(description = 'Check a given profile and/or its ebuilds.')
+    xchecker_parser.add_option('-p', '--profile', action='store_true', help='Enable profile checking.')
+    xchecker_parser.add_option('-e', '--ebuild', dest='atom', help='Check ebuild matching ATOM.', metavar='ATOM')
+
+    profile_group = OptionGroup(xchecker_parser, 'Specific options')
+    profile_group.add_option('-f', '--full', action='store_true', help='Full check: check target and its ebuilds.')
+    profile_group.add_option('-g', '--group', action='append', help='Gitlab group to whitelist during check. To whitelist 2 groups, use this option twice.', default=list())
+    profile_group.add_option('-t', '--target', help='Check TARGET [default: %default].', metavar='TARGET', default='current')
+
+    xchecker_parser.add_option_group(profile_group)
+
+    (options, args) = xchecker_parser.parse_args()
+
+    target = getenv('CURRENT_TARGET', options.target)
+    profile = ProfileParser(target)
+    if options.profile:
+        validateProfile(target)
+        if options.full:
+            for package in getTargetPackages().keys():
+                validateEbuild(package, profile, options.group)
+    elif options.atom:
+        validateEbuild(options.atom, profile, options.group)
+
+if __name__ == '__main__':
+    main()

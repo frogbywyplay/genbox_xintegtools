@@ -23,45 +23,49 @@ from __future__ import with_statement
 
 from ebuild import Ebuild, InvalidArgument
 from parser import BufferParser, ProfileParser
-from utils import info, error, warning
+from utils import error
 
 from os.path import exists
 from re import match
 from subprocess import Popen, PIPE
 from urlparse import urlparse
 
+def getTargetPackages(set = 'world', full = True):
+    """ This method is equivalent to run the following shell command to get list of all target packages
+        which would be installed:
+        xmerge --pretend --quiet --columns --color=n world 2> /dev/null | sed -n "/ to /p" | awk '{print $2}'
+        Note: '--nocheck' is required to avoid an infinite loop.
+    """
+    xmerge_pkg_cmd = ['xmerge', '--pretend', '--quiet', '--columns', '--color=n', set]
+    if full: xmerge_pkg_cmd.insert(-1, '--emptytree')
+    p = Popen(xmerge_pkg_cmd, stdout=PIPE, stderr=open('/dev/null', 'w'))
+    (out, err) = p.communicate()
+
+    target_pkg = dict()
+    if not out.split('\n')[0]:
+        error('The following command failed to complete successfully: %s' % ' '.join(xmerge_pkg_cmd) )
+        error('Results will be inaccurate or false.')
+        return target_pkg
+    for line in out.split('\n'):
+        if ' to ' in line and not line.startswith(' * '):
+            array = line[6:].strip().split(' ')
+            pkg = array[0]
+            version = array[1]
+            if pkg.startswith('product-targets'):
+                continue
+            target_pkg[pkg] = version
+    return target_pkg
+
 class ProfileChecker(object):
 
     def __init__(self, target = 'current'):
         self.__profile = ProfileParser(target = 'current')
 
-    def __get_target_packages(self, set = 'world', full = True):
-        """ This method is equivalent to run the following shell command to get list of all target packages
-            which would be installed:
-            xmerge --pretend --quiet --columns --color=n world 2> /dev/null | sed -n "/ to /p" | awk '{print $2}'
-            Note: '--nocheck' is required to avoid an infinite loop.
-        """
-        xmerge_pkg_cmd = ['xmerge', '--pretend', '--quiet', '--columns', '--color=n', set]
-        if full: xmerge_pkg_cmd.insert(-1, '--emptytree')
-        p = Popen(xmerge_pkg_cmd, stdout=PIPE, stderr=open('/dev/null', 'w'))
-        (out, err) = p.communicate()
-
-        target_pkg = dict()
-        for line in out.split('\n'):
-            if ' to ' in line and not line.startswith(' * '):
-                array = line[6:].strip().split(' ')
-                pkg = array[0]
-                version = array[1]
-                if pkg.startswith('product-targets'):
-                    continue
-                target_pkg[pkg] = version
-        return target_pkg
-
     def has_loop(self):
         profile_directories = self.__profile.stack()
         if len(set(profile_directories)) == len(profile_directories):
-            return True
-        return False
+            return False
+        return True
 
     def packages(self):
         """ Return a dict with the following keys:
@@ -79,7 +83,7 @@ class ProfileChecker(object):
                     packages_report['version'][package] = (version, ebuild.version)
             except InvalidArgument:
                 packages_report['extra'] += [package]
-        for package, version in self.__get_target_packages().items():
+        for package, version in getTargetPackages().items():
             if package not in self.__profile.packages.keys():
                 packages_report['missing'] += [package]
         return packages_report
@@ -102,7 +106,7 @@ class ProfileChecker(object):
 
 class EbuildChecker(object):
 
-    group_whitelist = ['frogbywyplay', 'generic', 'tools', 'web']
+    group_whitelist = ['common', 'frogbywyplay', 'generic', 'tools', 'web']
     mainline_branch = '^master$'
     stable_branch = '^((\d+.){2,}\d+)(-stable)$'
     wip_branch = '^wip-C?\d{1,6}_?[\w.-]*$'
@@ -132,6 +136,12 @@ class EbuildChecker(object):
         my_branch = self.buffer.get_variable('EGIT_BRANCH')
         my_regexp = '%s|%s|%s' % (self.mainline_branch, self.stable_branch, self.wip_branch)
         if match(my_regexp, my_branch):
+            return True
+        return False
+
+    def is_wip_git_branch(self):
+        my_branch = self.buffer.get_variable('EGIT_BRANCH')
+        if match(self.wip_branch, my_branch):
             return True
         return False
 
@@ -211,15 +221,4 @@ class EbuildChecker(object):
                 if size > 20 * 1024 * 1024:
                     filesdir_map['size'][my_file] = size
         return filesdir_map
-
-def check_gentoo_mirrors(gentoo_mirrors, reference_hostname):
-    from os import getenv
-    from urlparse import urlparse
-
-    invalid_mirrors = list()
-
-    for mirror in gentoo_mirrors.split():
-        if urlparse(mirror).hostname != reference_hostname:
-            invalid_mirrors += [mirror]
-    return invalid_mirrors
 

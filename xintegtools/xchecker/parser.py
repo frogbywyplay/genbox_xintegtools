@@ -56,7 +56,9 @@ class ProfileParser(object):
             file = '%s/%s' % (directory, filename)
             if exists(file):
                 f = open(file)
-                for line in f.readlines():
+                lines = f.readlines()
+                f.close()
+                for line in lines:
                     if not line.strip():
                         continue
                     if line.startswith('#'):
@@ -64,10 +66,9 @@ class ProfileParser(object):
                     try:
                         parser(line.strip())
                     except ProfileParserWarning, e:
-                        warning('%s: %s' % (file, e.message))
+                        warning('%s: %s' % (file, e.message), prefix='ParserWarning')
                     except ProfileParserError, e:
-                        error('%s: %s' % (file, e.message))
-                f.close()
+                        error('%s: %s' % (file, e.message), prefix='ParserError')
 
     def stack(self):
         return self.profile_config.profiles
@@ -104,13 +105,13 @@ class ProfileParser(object):
             else:
                 raise ProfileParserError('Unmatched line: %s' % input)
 
-        self.__parse_file('packages', parse_algo)
+        if not self.__packages:
+            self.__parse_file('packages', parse_algo)
         return self.__packages
 
     @property
     def virtuals(self):
         def parse_algo(input):
-            pass
             regexp = compile('^(?P<virtual>virtual/%s)\s+%s\s*%s?$' % (self.re_name, self.re_depend, self.re_comment))
             matching = regexp.match(input)
             if matching:
@@ -122,9 +123,10 @@ class ProfileParser(object):
                     raise ProfileParserWarning('Overwrite already provided %s (%s -> %s).' % (virtual, previous_depend, depend))
                 self.__virtuals[virtual] = depend
             else:
-                raise ProfileParserError('Unmatched line: %s.' % input)
+                raise ProfileParserError('Unmatched line: %s' % input)
 
-        self.__parse_file('virtuals', parse_algo)
+        if not self.__virtuals:
+            self.__parse_file('virtuals', parse_algo)
         return self.__virtuals
 
     @property
@@ -148,3 +150,12 @@ class BufferParser(object):
             if my_match:
                 return my_match.group('value')
         return str()
+
+    def get_line(self, variable):
+        k = int(0)
+        for line in self.data:
+            k += 1
+            my_match = match(self.assignation_regexp % variable, line)
+            if my_match:
+                return k
+        return int(-1)

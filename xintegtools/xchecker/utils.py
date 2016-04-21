@@ -22,18 +22,21 @@
 
 from output import colorize
 
-def error(text):
-    error = colorize('red', '* Error:')
+def error(text, prefix = 'Error'):
+    error = colorize('red', '* %s:' % prefix)
     text = colorize('bold', text)
     print '%s %s' % (error, text)
 
-def warning(text):
-    warning = colorize('yellow', '* Warning:')
+def warning(text, prefix = 'Warning'):
+    warning = colorize('yellow', '* %s:' % prefix)
     text = colorize('bold', text)
     print '%s %s' % (warning, text)
 
-def info(text):
-    info = colorize('green', '* Info:')
+def info(text, prefix = 'Info'):
+    info = colorize('green', '* %s:' % prefix)
     text = colorize('bold', text)
     print '%s %s' % (info, text)
 
+def print_item(text):
+    text = colorize('bold', '\t* %s' % text)
+    print '%s' % text
