@@ -53,7 +53,7 @@ def validateProfile(target= 'current'):
         for virtual, depend in virtuals['provide'].items():
             print_item('%s: PROVIDE="%s"' % (depend, virtual))
     if virtuals['unknown']:
-        info('The following packages are declared in virtuals, but without installabe candidate:')
+        info('The following packages are declared in virtuals, but without installable candidate:')
         for unknown in virtuals['unknown']:
             print_item(unknown)
 

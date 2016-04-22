@@ -59,7 +59,7 @@ def getTargetPackages(set = 'world', full = True):
 class ProfileChecker(object):
 
     def __init__(self, target = 'current'):
-        self.__profile = ProfileParser(target = 'current')
+        self.__profile = ProfileParser(target)
 
     def has_loop(self):
         profile_directories = self.__profile.stack()
