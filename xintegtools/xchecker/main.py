@@ -30,7 +30,7 @@ from urlparse import urlparse
 def validateProfile(target= 'current'):
     profile = ProfileChecker(target)
     if profile.has_loop():
-        error('loop in the profile... Motherfucker!')
+        error('loop in the profile... Aborting else will report too many false positives.')
         return 1
     packages = profile.packages()
     if packages['missing']:
