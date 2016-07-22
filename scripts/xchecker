@@ -5,6 +5,8 @@
 
 from xintegtools.xchecker import ProfileParser, validateEbuild, validateProfile, getTargetPackages
 
+from output import nocolor
+
 from optparse import OptionParser, OptionGroup
 from os import getenv
 
@@ -12,6 +14,7 @@ def main():
     xchecker_parser = OptionParser(description = 'Check a given profile and/or its ebuilds.')
     xchecker_parser.add_option('-p', '--profile', action='store_true', help='Enable profile checking.')
     xchecker_parser.add_option('-e', '--ebuild', dest='atom', help='Check ebuild matching ATOM.', metavar='ATOM')
+    xchecker_parser.add_option('', '--no-color', dest='color', action='store_false', help='Disable color in output', default=True)
 
     profile_group = OptionGroup(xchecker_parser, 'Specific options')
     profile_group.add_option('-f', '--full', action='store_true', help='Full check: check target and its ebuilds.')
@@ -21,6 +24,9 @@ def main():
     xchecker_parser.add_option_group(profile_group)
 
     (options, args) = xchecker_parser.parse_args()
+
+    if options.ensure_value('color', True) == False:
+        nocolor()
 
     target = getenv('CURRENT_TARGET', options.target)
     profile = ProfileParser(target)
