@@ -18,6 +18,6 @@
 #
 
 from ebuild import Ebuild, InvalidArgument
-from parser import ProfileParser
+from parser import BufferParser, ProfileParser
 from checker import getTargetPackages
 from main import validateEbuild, validateProfile
