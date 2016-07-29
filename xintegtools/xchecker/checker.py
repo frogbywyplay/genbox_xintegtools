@@ -108,7 +108,7 @@ class EbuildChecker(object):
 
     group_whitelist = ['common', 'frogbywyplay', 'generic', 'tools', 'web']
     mainline_branch = '^master$'
-    stable_branch = '^((\d+.){2,}\d+)(-stable)$'
+    stable_branch = '^((\d+\.){2,}\d+)(-stable)$'
     wip_branch = '^wip-C?\d{1,6}_?[\w.-]*$'
 
     def __init__(self, ebuild, profile):
