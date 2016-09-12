@@ -2,17 +2,17 @@
 #
 # Copyright (C) 2006-2014 Wyplay, All Rights Reserved.
 # This file is part of xintegtools.
-# 
+#
 # xintegtools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # xintegtools is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; see file COPYING.
 # If not, see <http://www.gnu.org/licenses/>.
@@ -99,7 +99,7 @@ class TestCommand(Command):
         if self.coverage:
                 cov.stop()
                 cov.report()
-	
+
 	if not ts.wasSuccessful():
 		sys.exit(1)
 
@@ -113,7 +113,7 @@ def find_packages(dir):
 
 setup(
     name = "xintegtools",
-    version = "2.2.1",
+    version = "2.2.2",
     description = "Xintegtools for genbox",
     author = "Wyplay",
     author_email = "noreply@wyplay.com",
@@ -132,7 +132,7 @@ setup(
                   ('/usr/share/xintegtools/xrepo/licenses', [ 'data/licenses/Wyplay' ]),
                   ('/usr/share/xintegtools/xrepo', [ 'data/arch.list' ]),
                  ],
-    long_description = """xintegtools for genbox like xbump, xreport""", 
+    long_description = """xintegtools for genbox like xbump, xreport""",
     cmdclass = { 'test' : TestCommand }
 )
 
