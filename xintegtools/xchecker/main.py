@@ -80,7 +80,7 @@ def validateEbuild(atom, profile, group_whitelist = list()):
         inherit_line = get_inherit_line()
         if inherit_line > 0 and eapi_line > inherit_line:
             error('%s defines EAPI after "inherit" statement.' % ebuild)
-        for flag in ebuild.iuse:
+        for flag in ebuild.iuse.split():
             if (flag[0] == '+' or flag[0] == '-') and eapi == 0:
                 error('%s must set its EAPI to 1 (currently EAPI=0).' % ebuild)
                 break
