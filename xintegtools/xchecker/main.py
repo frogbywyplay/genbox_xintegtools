@@ -140,6 +140,8 @@ def validateEbuild(atom, profile, group_whitelist = list()):
     validateEbuildEAPI()
     if ebuild_validator.is_mercurial():
         warning('%s fetchs its source code in a mercurial repository.' % ebuild)
+        if not ebuild_validator.is_mercurial_template():
+            error('%s is a template ebuild (i.e. fetchs its source code on HEAD of its mercurial repository).' % (ebuild))
     elif ebuild_validator.is_git():
         validateGitEbuild(group_whitelist)
     else:

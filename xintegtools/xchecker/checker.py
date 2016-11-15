@@ -157,6 +157,11 @@ class EbuildChecker(object):
             return False
         return True
 
+    def is_mercurial_template(self):
+        if self.buffer.get_variable('EHG_REVISION') == "":
+            return False
+        return True
+
     def uris(self):
         hosts = list()
         my_restrict = self.ebuild.restrict
