@@ -152,6 +152,11 @@ class EbuildChecker(object):
             return False
         return True
 
+    def is_git_template(self):
+        if self.buffer.get_variable('EGIT_REV') == "" and self.buffer.get_variable('EGIT_REVISION') == "":
+            return False
+        return True
+
     def uris(self):
         hosts = list()
         my_restrict = self.ebuild.restrict
