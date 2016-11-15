@@ -94,7 +94,7 @@ def validateEbuild(atom, profile, group_whitelist = list()):
         if not ebuild_validator.is_valid_git_group(whitelist):
             group = ebuild_validator.buffer.get_variable('EGIT_GROUP')
             error('%s fetchs its source code in "%s" forbidden gitlab group for this project.' % (ebuild, ebuild_validator.buffer.get_variable('EGIT_GROUP')))
-        if not ebuild_validator.is_git_template():
+        if ebuild_validator.is_git_template():
             error('%s is a template ebuild (i.e. fetchs its source code on HEAD of its gitlab repository).' % (ebuild))
 
     def validateEbuildUris():
@@ -140,7 +140,7 @@ def validateEbuild(atom, profile, group_whitelist = list()):
     validateEbuildEAPI()
     if ebuild_validator.is_mercurial():
         warning('%s fetchs its source code in a mercurial repository.' % ebuild)
-        if not ebuild_validator.is_mercurial_template():
+        if ebuild_validator.is_mercurial_template():
             error('%s is a template ebuild (i.e. fetchs its source code on HEAD of its mercurial repository).' % (ebuild))
     elif ebuild_validator.is_git():
         validateGitEbuild(group_whitelist)

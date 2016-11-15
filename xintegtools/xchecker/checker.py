@@ -154,13 +154,13 @@ class EbuildChecker(object):
 
     def is_git_template(self):
         if self.buffer.get_variable('EGIT_REV') == "" and self.buffer.get_variable('EGIT_REVISION') == "":
-            return False
-        return True
+            return True
+        return False
 
     def is_mercurial_template(self):
         if self.buffer.get_variable('EHG_REVISION') == "":
-            return False
-        return True
+            return True
+        return False
 
     def uris(self):
         hosts = list()
