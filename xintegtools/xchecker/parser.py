@@ -45,9 +45,8 @@ class ProfileParser(object):
     re_comment = '(?P<comment>#.*)'
 
     def __init__(self, target = 'current'):
-        root = '/' if target == 'host' else '/usr/targets/%s/root/' % getenv('CURRENT_TARGET', target)
-        self.target = len(root) > 1
-        self.profile_config = config(config_root = root, target_root = root, config_incrementals = INCREMENTALS)
+        self.root = '/' if target == 'host' else '/usr/targets/%s/root/' % getenv('CURRENT_TARGET', target)
+        self.profile_config = config(config_root = self.root, target_root = self.root, config_incrementals = INCREMENTALS)
         self.__packages = dict()
         self.__virtuals = dict()
 

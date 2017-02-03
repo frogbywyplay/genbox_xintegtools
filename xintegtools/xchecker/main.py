@@ -24,6 +24,7 @@ from ebuild import Ebuild, InvalidArgument
 from parser import ProfileParser
 from utils import info, error, print_item, warning
 
+from portage import create_trees
 from re import finditer
 from urlparse import urlparse
 
@@ -62,6 +63,11 @@ def validateProfile(target= 'current'):
     for mirror in target_profile.gentoo_mirrors.split():
         if urlparse(mirror).hostname != base_hostname:
             error('The current profile is using an invalid mirror %s' % mirror)
+
+    my_trees = create_trees(config_root = target_profile.root, target_root = target_profile.root)
+    portage_db = my_trees[target_profile.root]['porttree'].dbapi
+    if portage_db.getRepositoryPath('wyplay'):
+        error('The profile is using banned wyplay overlay')
     return 0
 
 
