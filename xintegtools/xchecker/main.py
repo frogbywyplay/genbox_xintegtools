@@ -19,7 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
-from checker import EbuildChecker, ProfileChecker
+from checker import collisionChecker, EbuildChecker, ProfileChecker
 from ebuild import Ebuild, InvalidArgument
 from parser import ProfileParser
 from utils import info, error, print_item, warning
@@ -68,6 +68,19 @@ def validateProfile(target= 'current'):
     portage_db = my_trees[target_profile.root]['porttree'].dbapi
     if portage_db.getRepositoryPath('wyplay'):
         error('The profile is using banned wyplay overlay')
+
+    overlays = list()
+    for overlay in portage_db.getRepositories():
+        overlays += [portage_db.getRepositoryPath(overlay)]
+    collisions = collisionChecker(overlays)
+    if collisions['warn']:
+        warning('The following packages are in conflict (but same ebuild):')
+        for (ebuild, overlays) in sorted(collisions['warn']):
+            print_item('%s present in the following overlays: %s' % (ebuild, ', '.join(overlays)))
+    if collisions['error']:
+        error('The following ebuilds are in conflict (and ebuild differs):')
+        for (ebuild, overlays) in sorted(collisions['error']):
+            print_item('%s present in the following overlays: %s' % (ebuild, ', '.join(overlays)))
     return 0
 
 
@@ -153,4 +166,3 @@ def validateEbuild(atom, profile, group_whitelist = list()):
     else:
         validateEbuildUris()
     validateEbuildDependSyntax()
-

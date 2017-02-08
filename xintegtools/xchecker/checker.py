@@ -25,9 +25,13 @@ from ebuild import Ebuild, InvalidArgument
 from parser import BufferParser, ProfileParser
 from utils import error
 
-from os.path import exists
+from filecmp import cmp
+from fnmatch import filter
+from os.path import basename, exists
 from re import match
+from shutil import copy, rmtree
 from subprocess import Popen, PIPE
+from tempfile import mkdtemp
 from urlparse import urlparse
 
 def getTargetPackages(set = 'world', full = True):
@@ -231,4 +235,46 @@ class EbuildChecker(object):
                 if size > 20 * 1024 * 1024:
                     filesdir_map['size'][my_file] = size
         return filesdir_map
+
+def collisionChecker(overlay_list):
+
+    def get_ebuilds_from_overlay(overlay):
+        from os import walk
+
+        ebuilds = list()
+        for root, directories, files in walk(overlay):
+            for file in files:
+                if file.endswith('.ebuild'):
+                    ebuilds.append('%s/%s' % (root, file))
+        return ebuilds
+
+    def get_info_from_collision(ebuilds):
+        if not ebuilds:
+            return (str(), list())
+
+        cpv = '%s/%s' % (ebuilds[0].split('/')[-3], ebuilds[0].split('/')[-1].replace('.ebuild', ''))
+        overlays = list()
+        for ebuild in ebuilds:
+            overlays += [ebuild.split('/')[-4]]
+        return (cpv, overlays)
+
+    collisions = {'warn': list(), 'error': list()}
+    ebuild_list = list()
+    tmpdir = mkdtemp(suffix='.xchecker')
+    for overlay in overlay_list:
+        ebuild_list += get_ebuilds_from_overlay(overlay)
+    for ebuild in ebuild_list:
+        ebuild_name = basename(ebuild)
+        if not exists('%s/%s' % (tmpdir, ebuild_name)):
+            copy(ebuild, tmpdir)
+            continue
+        collision = get_info_from_collision(filter(ebuild_list, '*/%s' % ebuild_name))
+        if collision in collisions['warn'] + collisions['error']:
+            continue
+        if cmp(ebuild, '%s/%s' % (tmpdir, ebuild_name)):
+            collisions['warn'].append(collision)
+        else:
+            collisions['error'].append(collision)
+    rmtree(tmpdir)
+    return collisions
 
