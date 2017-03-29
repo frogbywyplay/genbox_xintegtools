@@ -7,10 +7,11 @@ except ImportError:
 
 import os
 from xutils.output import die, info
+from xov.config import XovConfig, XovConfigError
 from subprocess import Popen
 
 TARGET_RELEASE_PATH = "/usr/targets/current/root/etc/target-release"
-TARGETS_PORTDIR = "/usr/local/portage/targets"
+TARGETS_OV_DIR = ["/usr/local/portage/targets"]
 TARGET_PROFILE_BACKUP_PATH = "/usr/targets/current/root/etc/portage_orig"
 
 if __name__ == "__main__":
@@ -37,15 +38,34 @@ if __name__ == "__main__":
     profile_version = profile_elt.get("version")
     profile_arch = profile_elt.get("arch")
 
-    target_ebuild_path = os.path.join(TARGETS_PORTDIR, profile_name, "%s-%s.ebuild"%(target_name, profile_version))
+    # Find custom xtarget_overlays paths
+    xtov_config = XovConfig("/etc", "/usr/local/portage", is_targets=True)
+    if os.path.isfile(xtov_config.cfg_file):
+        try:
+            fd = open(xtov_config.cfg_file, 'r')
+            xtov_config_data = fd.read()
+            fd.close()
+            res = xtov_config.portdir_ov_re.search(xtov_config_data)
+            groups = res.groups()
+            if groups and len(groups) == 1:
+                TARGETS_OV_DIR.extend(groups[0].split()[1:])
+        except Exception, e:
+            die("Unable to read %s: %s"%(xtov_config.cfg_file, str(e)))
+
+    for ov_dir in TARGETS_OV_DIR:
+        target_ebuild_path = os.path.join(ov_dir, profile_name, "%s-%s.ebuild"%(target_name, profile_version))
+        if os.path.exists(target_ebuild_path):
+            break
+    else:
+        die("Ebuild for %s not found"%target_name, profile_version)
+
     info("target ebuild: %s"%target_ebuild_path)
     info("target profile backup: %s"%TARGET_PROFILE_BACKUP_PATH)
 
-    if not os.path.exists(target_ebuild_path):
-        die("%s Not Found"%target_ebuild_path)
-
     myenv = os.environ.copy()
     myenv["USE"] = "devprofile"
+    # set PORTDIR to main target ov: eclass/ will be available from xbuild
+    myenv["PORTDIR"] = "/usr/local/portage/targets"
 
     # fetch sources
     ret = Popen(['/usr/bin/xbuild', target_ebuild_path, "fetch", "setup", "unpack"], bufsize=-1, stdout=None, stderr=None, shell=False, cwd=None, env=myenv).wait()
