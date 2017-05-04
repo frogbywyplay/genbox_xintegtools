@@ -112,8 +112,9 @@ class EbuildChecker(object):
 
     group_whitelist = ['common', 'frogbywyplay', 'tools', 'web']
     mainline_branch = '^master$'
-    stable_branch = '^((\d+\.){2,}\d+)(-stable)$'
-    wip_branch = '^wip-C?\d{1,6}_?[\w.-]*$'
+    rb_branch = '^\d+(\.\d+){1,2}/rb$'
+    stable_branch = '^((\d+\.){1,}\d+)(-stable[\w\-\.]*)$'
+    wip_branch = '^wip-C?\d{1,6}(_[\w\-\.]+)?$'
 
     def __init__(self, ebuild, profile):
         self.ebuild = ebuild
@@ -138,7 +139,7 @@ class EbuildChecker(object):
 
     def is_valid_git_branch(self):
         my_branch = self.buffer.get_variable('EGIT_BRANCH')
-        my_regexp = '%s|%s|%s' % (self.mainline_branch, self.stable_branch, self.wip_branch)
+        my_regexp = '%s|%s|%s|%s' % (self.mainline_branch, self.stable_branch, self.rb_branch, self.wip_branch)
         if match(my_regexp, my_branch):
             return True
         return False
