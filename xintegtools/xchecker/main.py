@@ -157,6 +157,8 @@ def validateEbuild(atom, profile, group_whitelist = list()):
     info('Checking %s' % ebuild)
     ebuild_validator = EbuildChecker(ebuild, profile)
     validateEbuildEAPI()
+    if not ebuild_validator.has_license():
+        warning('%s has no LICENSE.' % ebuild)
     if ebuild_validator.is_mercurial():
         warning('%s fetchs its source code in a mercurial repository.' % ebuild)
         if ebuild_validator.is_mercurial_template():

@@ -123,6 +123,9 @@ class EbuildChecker(object):
             my_ebuild.close()
         self.profile = profile
 
+    def has_license(self):
+        return bool(self.ebuild.license.strip())
+
     def is_mercurial(self):
         if not 'mercurial' in self.ebuild.inherited:
             return False
