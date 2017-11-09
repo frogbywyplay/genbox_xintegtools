@@ -153,12 +153,10 @@ class EbuildChecker(object):
             return True
         return False
 
-    def is_valid_git_group(self, current_group):
-        my_group = self.buffer.get_variable('EGIT_GROUP')
-        group_whitelist = self.group_whitelist + current_group
-        if my_group not in group_whitelist:
-            return False
-        return True
+    def is_valid_git_group(self):
+        if self.buffer.get_variable('EGIT_GROUP') != 'generic':
+            return True
+        return False
 
     def is_git_template(self):
         if self.buffer.get_variable('EGIT_REV') == "" and self.buffer.get_variable('EGIT_REVISION') == "":

@@ -84,7 +84,7 @@ def validateProfile(target= 'current'):
     return 0
 
 
-def validateEbuild(atom, profile, group_whitelist = list()):
+def validateEbuild(atom, profile):
 
     def validateEbuildEAPI():
         def get_inherit_line():
@@ -104,15 +104,14 @@ def validateEbuild(atom, profile, group_whitelist = list()):
                 error('%s must set its EAPI to 1 (currently EAPI=0).' % ebuild)
                 break
 
-    def validateGitEbuild(whitelist = list()):
+    def validateGitEbuild():
         if not ebuild_validator.is_valid_git_branch():
             branch = ebuild_validator.buffer.get_variable('EGIT_BRANCH')
             warning('%s does not comply with Wyplay SCMP rules for branch "%s".' % (ebuild, branch))
             if ebuild_validator.is_wip_git_branch():
                 warning('%s is using a WIP branch.' % ebuild)
-        if not ebuild_validator.is_valid_git_group(whitelist):
-            group = ebuild_validator.buffer.get_variable('EGIT_GROUP')
-            error('%s fetchs its source code in "%s" forbidden gitlab group for this project.' % (ebuild, ebuild_validator.buffer.get_variable('EGIT_GROUP')))
+        if not ebuild_validator.is_valid_git_group():
+            error('%s fetchs its source code in "generic" gitlab group.' % ebuild)
         if ebuild_validator.is_git_template():
             error('%s is a template ebuild (i.e. fetchs its source code on HEAD of its gitlab repository).' % (ebuild))
 
@@ -164,7 +163,7 @@ def validateEbuild(atom, profile, group_whitelist = list()):
         if ebuild_validator.is_mercurial_template():
             error('%s is a template ebuild (i.e. fetchs its source code on HEAD of its mercurial repository).' % (ebuild))
     elif ebuild_validator.is_git():
-        validateGitEbuild(group_whitelist)
+        validateGitEbuild()
     else:
         validateEbuildUris()
     validateEbuildDependSyntax()
