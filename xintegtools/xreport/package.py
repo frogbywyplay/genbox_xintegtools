@@ -19,6 +19,7 @@
 #
 
 import os, errno
+import stat
 
 from pkgsplit import pkgsplit
 from hashlib import md5
@@ -116,7 +117,7 @@ class XPackage(object):
         null_byte = '\0'
 
         lines = readfile(vdbdir + '/CONTENTS')
-        for line in lines:
+        for pos, line in enumerate(lines):
             if null_byte in line:
                 # Null bytes are a common indication of corruption.
                 # FIXME raise something

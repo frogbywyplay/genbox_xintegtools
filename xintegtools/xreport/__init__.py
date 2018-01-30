@@ -18,7 +18,7 @@
 #
 #
 
-from report import XReport
-from cmdline import XReportCmdline, XCompareCmdline
-from output_xml import XReportXMLOutput, XCompareXMLOutput
-from output_txt import XReportTXTOutput, XCompareTXTOutput
+from report import XReport  # noqa
+from cmdline import XReportCmdline, XCompareCmdline  # noqa
+from output_xml import XReportXMLOutput, XCompareXMLOutput  # noqa
+from output_txt import XReportTXTOutput, XCompareTXTOutput  # noqa

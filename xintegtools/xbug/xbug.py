@@ -18,13 +18,13 @@
 #
 #
 
-import os, exceptions, re
+import re
 import xmlrpclib as xrpc
 
-from consts import *
+from consts import BUGZILLA_URL
 
 
-class XBugError(exceptions.Exception):
+class XBugError(Exception):
     """ Error class for XBug. """
 
     def __init__(self, error=None):

@@ -20,7 +20,7 @@
 #
 
 import unittest
-import sys, os, re
+import sys, os
 
 curr_path = os.path.realpath(os.path.dirname(sys.modules[__name__].__file__))
 

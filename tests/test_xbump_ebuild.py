@@ -24,7 +24,6 @@ from sys import modules, path
 from unittest import TestCase, main
 
 path.insert(0, realpath(dirname(modules[__name__].__file__) + '/..'))
-from xintegtools.xbump.ebuild import Ebuild
 
 
 class EbuildTester(TestCase):

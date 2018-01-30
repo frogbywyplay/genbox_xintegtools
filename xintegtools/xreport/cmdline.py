@@ -18,12 +18,11 @@
 #
 #
 
-import os, re, sys
+import sys
 
-from xutils import color, die, warn, info, vinfo, is_verbose, XUtilsError
+from xutils import die, vinfo, is_verbose, XUtilsError
 from report import XReport
 from compare import XCompare
-from consts import *
 
 
 class XReportCmdline(XReport):

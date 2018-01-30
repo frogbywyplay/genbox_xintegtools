@@ -18,12 +18,12 @@
 #
 #
 
-import os, exceptions, re
-from consts import *
+import os
+import re
+
+from consts import VDB_PATH
 
 from package import XPackage
-
-from xutils import vinfo
 
 from report_utils import readfile
 
@@ -69,11 +69,11 @@ class XReport(object):
                 return
 
         def _normalize_path(mypath):
-            """ 
-                	os.path.normpath("//foo") returns "//foo" instead of "/foo"
-                	We dislike this behavior so we create our own normpath func
-                	to fix it.
-                	"""
+            """
+            os.path.normpath("//foo") returns "//foo" instead of "/foo"
+            We dislike this behavior so we create our own normpath func
+            to fix it.
+            """
             if mypath.startswith(os.path.sep):
                 # posixpath.normpath collapses 3 or more leading slashes to just 1.
                 return os.path.normpath(2 * os.path.sep + mypath)
@@ -124,7 +124,7 @@ class XReport(object):
                     ret += 1
                 # collision check
                 if file.type != 'dir':
-                    if self.vdb_processed.has_key(file.name):
+                    if file.name in self.vdb_processed:
                         if file.name not in collisions:
                             collisions.append(file.name)
                         self.vdb_processed[file.name].append(pkg.name)
@@ -149,5 +149,5 @@ class XReport(object):
         self.vdb_orphans = {}
         for file_num, file in enumerate(self.filelist):
             info_func(file_num + 1, nb_iter)
-            if not self.vdb_processed.has_key(file):
+            if file not in self.vdb_processed:
                 self.vdb_orphans[file] = True

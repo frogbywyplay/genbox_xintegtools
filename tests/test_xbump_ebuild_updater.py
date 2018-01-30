@@ -99,11 +99,6 @@ class TargetEbuildUpdaterTester(TestCase):
         self.assertTrue(updater.update_overlays(str()))
 
         overlays = 'foo:899e51d3d2b94b694dfc9976ee37e57d63d7829e,bar:7f8ac3a7e773e09fb591e3b34f057c16d15c80e9'
-        calls = [{
-            'foo': '899e51d3d2b94b694dfc9976ee37e57d63d7829e'
-        }, {
-            'bar': '7f8ac3a7e773e09fb591e3b34f057c16d15c80e9'
-        }]
         mock_targetebuildcontent.return_value.overlays.keys.return_value = ['foo', 'bar', 'base', 'board']
         mock_git.return_value.resolve_branch.return_value = 'a' * 40
         self.assertTrue(updater.update_overlays(overlays))

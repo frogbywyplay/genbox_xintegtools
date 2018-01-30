@@ -18,12 +18,11 @@
 #
 #
 
-import sys, os
+import sys
 
-try:
-    import xml.etree.ElementTree as etree
-except ImportError:
-    import elementtree.ElementTree as etree
+import xml.etree.ElementTree as etree
+
+from xutils import die
 
 from output import XReportOutput, XCompareOutput
 
@@ -123,7 +122,7 @@ class XReportXMLOutput(XReportOutput):
                     scm_elt = etree.Element(ii)
                     scm_elt.text = pkg.scm[ii]
                     xml_scm.append(scm_elt)
-                except KeyError, e:
+                except KeyError:
                     pass
 
     def _collisions(self, collisions, output_file):

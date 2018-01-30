@@ -18,9 +18,9 @@
 #
 #
 
-import os, re, sys
+import sys
 
-from xutils import color, die, warn, info, vinfo, is_verbose
+from xutils import die, warn, vinfo, is_verbose
 from xbug import XBug, XBugError
 
 

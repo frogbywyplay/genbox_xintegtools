@@ -18,7 +18,7 @@
 #
 #
 
-import sys, os
+import sys
 
 from xutils import color, info, is_verbose, die
 

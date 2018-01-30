@@ -20,7 +20,7 @@
 
 import os
 
-from xutils import warn, error, die, info
+from xutils import die, info
 
 from repo import XrepoError, Xrepo
 

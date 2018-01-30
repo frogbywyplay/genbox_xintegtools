@@ -19,7 +19,7 @@
 #
 #
 
-from mock import MagicMock, patch
+from mock import patch
 from os.path import dirname, realpath
 from sys import modules, path
 from unittest import TestCase, main

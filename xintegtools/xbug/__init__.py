@@ -18,7 +18,7 @@
 #
 #
 
-from xbug import XBug, XBugError
-from cmdline import XBugCmdline
+from xbug import XBug, XBugError  # noqa
+from cmdline import XBugCmdline  # noqa
 
-from output_txt import XBugTXTOutput
+from output_txt import XBugTXTOutput  # noqa

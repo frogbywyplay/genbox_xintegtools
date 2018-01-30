@@ -18,8 +18,6 @@
 #
 #
 
-import sys
-
 
 class XBugOutput(object):
     def __init__(self):

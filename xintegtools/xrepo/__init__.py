@@ -18,5 +18,5 @@
 #
 #
 
-from repo import Xrepo
-from cmdline import XrepoCmdline
+from repo import Xrepo  # noqa
+from cmdline import XrepoCmdline  # noqa

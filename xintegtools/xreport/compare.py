@@ -18,8 +18,6 @@
 #
 #
 
-import exceptions
-
 from xml.sax import handler, make_parser
 
 from xutils import XUtilsError

@@ -44,7 +44,6 @@ class TargetEbuildUpdater(object):
         return False
 
     def update_branch(self, branch):
-        repo_info = {'uri': self.data.uri, 'branch': self.data.branch, 'proto': 'git'}
         if not branch:
             return False
         if not self.git.branch_exists(branch):
@@ -60,7 +59,6 @@ class TargetEbuildUpdater(object):
 
     def update_revision(self, revision):
         sha1 = str()
-        repo_info = {'uri': self.data.uri, 'branch': self.data.branch, 'proto': 'git'}
         if revision == 'HEAD':
             sha1 = self.git.resolve_branch()
         elif not is_git_sha1(revision):

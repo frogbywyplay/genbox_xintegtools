@@ -18,13 +18,11 @@
 #
 #
 
-import sys, os
-
-from xutils import color, info, is_verbose, die
+from xutils import color, info
 
 from output import XBugOutput
 
-from consts import *
+from consts import BUGZILLA_URL
 
 
 class XBugTXTOutput(XBugOutput):
