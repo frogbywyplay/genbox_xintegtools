@@ -2,17 +2,17 @@
 #
 # Copyright (C) 2006-2014 Wyplay, All Rights Reserved.
 # This file is part of xintegtools.
-# 
+#
 # xintegtools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # xintegtools is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; see file COPYING.
 # If not, see <http://www.gnu.org/licenses/>.
@@ -26,8 +26,8 @@ from unittest import TestCase, main
 path.insert(0, realpath(dirname(modules[__name__].__file__) + '/..'))
 from xintegtools.xbump.ebuild import Ebuild
 
-class EbuildTester(TestCase):
 
+class EbuildTester(TestCase):
     def test_category(self):
         pass
 
@@ -67,5 +67,6 @@ class EbuildTester(TestCase):
     def test_eapi(self):
         pass
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()

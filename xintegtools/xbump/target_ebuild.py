@@ -25,11 +25,12 @@ from utils import error
 from os.path import exists
 from re import match, sub
 
+
 class TargetEbuildContent(object):
 
     # expand is used to reference ': ${var:=value}' construction
     # quote is used to reference possible quote around value
-    VAR_REGEXP=r'^\s*(?P<expand>:\s+\${)?(?P<var>%s)(?(expand):)?=(?P<quote>\")?(?P<value>(?:[^\\"]|\\.)*)(?(quote)\")(?(expand)})\s*(?:#.*)?$'
+    VAR_REGEXP = r'^\s*(?P<expand>:\s+\${)?(?P<var>%s)(?(expand):)?=(?P<quote>\")?(?P<value>(?:[^\\"]|\\.)*)(?(quote)\")(?(expand)})\s*(?:#.*)?$'
 
     def __init__(self, data):
         self.data = data
@@ -51,10 +52,10 @@ class TargetEbuildContent(object):
             my_match = match(self.VAR_REGEXP % 'XOV_\w+_URI', line)
             if my_match:
                 var = my_match.group('var')
-                available_overlays += [var[var.find('_')+1:var.rfind('_')].lower().replace('_', '-')]
+                available_overlays += [var[var.find('_') + 1:var.rfind('_')].lower().replace('_', '-')]
         return available_overlays
 
-    def __inject(self, variable, value, after = None):
+    def __inject(self, variable, value, after=None):
         for line in self.data.splitlines():
             my_match = match(self.VAR_REGEXP % variable, line)
             if my_match:
@@ -90,7 +91,7 @@ class TargetEbuildContent(object):
 
     @branch.setter
     def branch(self, value):
-        if not self.__inject('EGIT_BRANCH', value, after = 'EGIT_REPO_URI'):
+        if not self.__inject('EGIT_BRANCH', value, after='EGIT_REPO_URI'):
             raise ValueError('Unable to set EGIT_BRANCH to %s' % value)
         self._branch = value
 
@@ -102,7 +103,7 @@ class TargetEbuildContent(object):
 
     @commit.setter
     def commit(self, value):
-        if not self.__inject('EGIT_COMMIT', value, after = 'EGIT_REPO_URI'):
+        if not self.__inject('EGIT_COMMIT', value, after='EGIT_REPO_URI'):
             raise ValueError('Unable to set EGIT_COMMIT to %s.' % value)
         self._commit = value
 
@@ -111,10 +112,12 @@ class TargetEbuildContent(object):
         if self._overlays is None:
             self._overlays = dict()
             for ov in self.__extract_overlays():
-                self._overlays[ov] = {'uri': self.__extract('XOV_%s_URI' % ov.upper().replace('-','_')), 
-                                      'branch': self.__extract('XOV_%s_BRANCH' % ov.upper().replace('-', '_')), 
-                                      'revision': self.__extract('XOV_%s_REVISION' % ov.upper().replace('-', '_')),
-                                      'proto': self.__extract('XOV_%s_PROTO' % ov.upper().replace('-', '_'))}
+                self._overlays[ov] = {
+                    'uri': self.__extract('XOV_%s_URI' % ov.upper().replace('-', '_')),
+                    'branch': self.__extract('XOV_%s_BRANCH' % ov.upper().replace('-', '_')),
+                    'revision': self.__extract('XOV_%s_REVISION' % ov.upper().replace('-', '_')),
+                    'proto': self.__extract('XOV_%s_PROTO' % ov.upper().replace('-', '_'))
+                }
         return self._overlays
 
     @overlays.setter
@@ -122,11 +125,11 @@ class TargetEbuildContent(object):
         variable = 'XOV_%s_REVISION'
         for overlay, revision in value.items():
             var_overlay = overlay.upper().replace('-', '_')
-            if not self.__inject(variable % var_overlay, revision, after = 'XOV_%s_URI' % var_overlay):
+            if not self.__inject(variable % var_overlay, revision, after='XOV_%s_URI' % var_overlay):
                 raise ValueError('Unable to set %s to %s.' % (variable % var_overlay, revision))
             self._overlays[overlay]['revision'] = revision
 
-    def write_into(self, filename, force = False):
+    def write_into(self, filename, force=False):
         if exists(filename) and not force:
             error('Filename %s already exists.' % filename)
             return False

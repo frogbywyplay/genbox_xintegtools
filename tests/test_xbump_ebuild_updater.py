@@ -2,17 +2,17 @@
 #
 # Copyright (C) 2006-2014 Wyplay, All Rights Reserved.
 # This file is part of xintegtools.
-# 
+#
 # xintegtools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # xintegtools is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; see file COPYING.
 # If not, see <http://www.gnu.org/licenses/>.
@@ -27,14 +27,14 @@ from unittest import TestCase, main
 path.insert(0, realpath(dirname(modules[__name__].__file__) + '/..'))
 from xintegtools.xbump.ebuild_updater import TargetEbuildUpdater
 
-class TargetEbuildUpdaterTester(TestCase):
 
+class TargetEbuildUpdaterTester(TestCase):
     @patch('xintegtools.xbump.ebuild_updater.GitRemote')
     @patch('xintegtools.xbump.ebuild_updater.TargetEbuildContent')
     @patch('xintegtools.xbump.ebuild_updater.Ebuild')
     @patch('xintegtools.xbump.ebuild_updater.open')
     def test_is_target_ebuild(self, mock_open, mock_ebuild, mock_targetebuildcontent, mock_git):
-        mock_open.return_value = MagicMock(spec = file)
+        mock_open.return_value = MagicMock(spec=file)
 
         updater = TargetEbuildUpdater('mock')
         mock_ebuild.inherited.return_value = 'git-r3 eutils toolchain-funcs multilib'
@@ -48,7 +48,7 @@ class TargetEbuildUpdaterTester(TestCase):
     @patch('xintegtools.xbump.ebuild_updater.Ebuild')
     @patch('xintegtools.xbump.ebuild_updater.open')
     def test_update_branch(self, mock_open, mock_ebuild, mock_targetebuildcontent, mock_git):
-        mock_open.return_value = MagicMock(spec = file)
+        mock_open.return_value = MagicMock(spec=file)
 
         updater = TargetEbuildUpdater('mock')
         self.assertFalse(updater.update_branch(str()))
@@ -68,7 +68,7 @@ class TargetEbuildUpdaterTester(TestCase):
     @patch('xintegtools.xbump.ebuild_updater.Ebuild')
     @patch('xintegtools.xbump.ebuild_updater.open')
     def test_update_revision(self, mock_open, mock_ebuild, mock_targetebuildcontent, mock_git):
-        mock_open.return_value = MagicMock(spec = file)
+        mock_open.return_value = MagicMock(spec=file)
 
         updater = TargetEbuildUpdater('mock')
         mock_git.return_value.resolve_branch.return_value = str()
@@ -93,13 +93,17 @@ class TargetEbuildUpdaterTester(TestCase):
     @patch('xintegtools.xbump.ebuild_updater.Ebuild')
     @patch('xintegtools.xbump.ebuild_updater.open')
     def test_update_overlays(self, mock_open, mock_ebuild, mock_targetebuildcontent, mock_git):
-        mock_open.return_value = MagicMock(spec = file)
+        mock_open.return_value = MagicMock(spec=file)
 
         updater = TargetEbuildUpdater('mock')
         self.assertTrue(updater.update_overlays(str()))
 
-        overlays='foo:899e51d3d2b94b694dfc9976ee37e57d63d7829e,bar:7f8ac3a7e773e09fb591e3b34f057c16d15c80e9'
-        calls = [{'foo': '899e51d3d2b94b694dfc9976ee37e57d63d7829e'}, {'bar': '7f8ac3a7e773e09fb591e3b34f057c16d15c80e9'}]
+        overlays = 'foo:899e51d3d2b94b694dfc9976ee37e57d63d7829e,bar:7f8ac3a7e773e09fb591e3b34f057c16d15c80e9'
+        calls = [{
+            'foo': '899e51d3d2b94b694dfc9976ee37e57d63d7829e'
+        }, {
+            'bar': '7f8ac3a7e773e09fb591e3b34f057c16d15c80e9'
+        }]
         mock_targetebuildcontent.return_value.overlays.keys.return_value = ['foo', 'bar', 'base', 'board']
         mock_git.return_value.resolve_branch.return_value = 'a' * 40
         self.assertTrue(updater.update_overlays(overlays))
@@ -116,7 +120,7 @@ class TargetEbuildUpdaterTester(TestCase):
     @patch('xintegtools.xbump.ebuild_updater.Ebuild')
     @patch('xintegtools.xbump.ebuild_updater.open')
     def test_release_ebuild(self, mock_open, mock_ebuild, mock_targetebuildcontent, mock_git):
-        mock_open.return_value = MagicMock(spec = file)
+        mock_open.return_value = MagicMock(spec=file)
         mock_targetebuildcontent.return_value.write_into.return_value = True
         mock_ebuild.return_value.overlay.return_value = '/var/lib/layman/targets'
         mock_ebuild.return_value.category.return_value = 'product-targets'
@@ -131,5 +135,6 @@ class TargetEbuildUpdaterTester(TestCase):
         mock_targetebuildcontent.return_value.write_into.return_value = False
         self.assertEqual(updater.release_ebuild(version), str())
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()

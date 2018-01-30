@@ -27,17 +27,15 @@ from utils import error, info, warning, is_git_sha1
 
 from re import compile
 
-class TargetEbuildUpdater(object):
 
-    def __init__(self, ebuild, verbose = False):
+class TargetEbuildUpdater(object):
+    def __init__(self, ebuild, verbose=False):
         self.verbose = verbose
-        self.template = Ebuild(ebuild, verbose = verbose)
+        self.template = Ebuild(ebuild, verbose=verbose)
         f = open(self.template.abspath)
-        self.data = TargetEbuildContent(f.read()) 
+        self.data = TargetEbuildContent(f.read())
         f.close()
-        repo_info = {'uri': self.data.uri,
-                     'branch': self.data.branch,
-                     'proto': 'git'}
+        repo_info = {'uri': self.data.uri, 'branch': self.data.branch, 'proto': 'git'}
         self.git = GitRemote(repo_info)
 
     def is_target_ebuild(self):
@@ -46,9 +44,7 @@ class TargetEbuildUpdater(object):
         return False
 
     def update_branch(self, branch):
-        repo_info = {'uri': self.data.uri,
-                     'branch': self.data.branch,
-                     'proto': 'git'}
+        repo_info = {'uri': self.data.uri, 'branch': self.data.branch, 'proto': 'git'}
         if not branch:
             return False
         if not self.git.branch_exists(branch):
@@ -64,9 +60,7 @@ class TargetEbuildUpdater(object):
 
     def update_revision(self, revision):
         sha1 = str()
-        repo_info = {'uri': self.data.uri,
-                     'branch': self.data.branch,
-                     'proto': 'git'}
+        repo_info = {'uri': self.data.uri, 'branch': self.data.branch, 'proto': 'git'}
         if revision == 'HEAD':
             sha1 = self.git.resolve_branch()
         elif not is_git_sha1(revision):
@@ -91,7 +85,7 @@ class TargetEbuildUpdater(object):
                 return False
         return True
 
-    def update_overlays(self, overlays = str()):
+    def update_overlays(self, overlays=str()):
         overlays_to_update = dict()
         for overlay in overlays.split(','):
             if not overlay: continue
@@ -120,13 +114,11 @@ class TargetEbuildUpdater(object):
                 error(e.message)
         return True
 
-    def compute_version(self, use_tag = False, version = str()):
+    def compute_version(self, use_tag=False, version=str()):
         my_version = str()
         origin = str()
         ver_regexp = compile('(\d+)((\.\d+)*)')
-        repo_info = {'uri': self.data.uri,
-                     'branch': self.data.branch,
-                     'proto': 'git'}
+        repo_info = {'uri': self.data.uri, 'branch': self.data.branch, 'proto': 'git'}
         if use_tag:
             origin = 'latest tag on branch %s' % repo_info['branch']
             tag = self.git.get_tag_from_sha1(self.data.commit)
@@ -144,11 +136,12 @@ class TargetEbuildUpdater(object):
         if self.verbose: info('Version computed from %s: %s.' % (origin, my_version))
         return my_version
 
-    def release_ebuild(self, version, force = False):
+    def release_ebuild(self, version, force=False):
         if not version:
             return str()
-        filename = '%s/%s/%s/%s-%s.ebuild' % (self.template.overlay, self.template.category, self.template.name, self.template.name, version)
+        filename = '%s/%s/%s/%s-%s.ebuild' % (
+            self.template.overlay, self.template.category, self.template.name, self.template.name, version
+        )
         if self.data.write_into(filename, force):
             return filename
         return str()
-

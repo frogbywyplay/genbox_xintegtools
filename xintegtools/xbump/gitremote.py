@@ -23,13 +23,13 @@
 from utils import error, warning, is_git_sha1
 from subprocess import Popen, STDOUT, PIPE
 
-class GitRemote(object):
 
+class GitRemote(object):
     def __init__(self, repository):
         self.repository = repository
 
     def _run_cmd(self, cmd):
-        process = Popen(cmd, shell = False, stdout = PIPE, stderr = STDOUT)
+        process = Popen(cmd, shell=False, stdout=PIPE, stderr=STDOUT)
         (stdoutdata, stderrdata) = process.communicate()
         if process.returncode != 0:
             error(stdoutdata)
@@ -90,7 +90,7 @@ class GitRemote(object):
             if rev == sha1: return tag
         return str()
 
-    def branch_exists(self, branch = str()):
+    def branch_exists(self, branch=str()):
         """ Return True if branch exists else False.
         """
         if self.repository['proto'] != 'git':
@@ -105,7 +105,7 @@ class GitRemote(object):
             return True
         return False
 
-    def resolve_branch(self, branch = str()):
+    def resolve_branch(self, branch=str()):
         """ Return the SHA1 of the HEAD of the branch
         """
         if self.repository['proto'] != 'git':

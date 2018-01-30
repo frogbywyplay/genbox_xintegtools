@@ -2,17 +2,17 @@
 #
 # Copyright (C) 2006-2014 Wyplay, All Rights Reserved.
 # This file is part of xintegtools.
-# 
+#
 # xintegtools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # xintegtools is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; see file COPYING.
 # If not, see <http://www.gnu.org/licenses/>.
@@ -26,6 +26,7 @@ from unittest import TestCase, main
 
 path.insert(0, realpath(dirname(modules[__name__].__file__) + '/..'))
 from xintegtools.xbump.target_ebuild import TargetEbuildContent
+
 
 class TargetEbuildContentTester(TestCase):
 
@@ -46,10 +47,16 @@ XOV_BASE_REVISION=%(xov_base_revision)s
 XOV_BOARD_URI=%(xov_board_uri)s
 #XOV_BOARD_BRANCH=master
 """
-    data_values = {'uri': str(), 'branch': str(), 'commit': str(),
-                   'xov_base_uri': str(), 'xov_base_branch': str(),
-                   'xov_base_revision': str(), 'xov_base_proto': str(),
-                   'xov_board_uri': str()}
+    data_values = {
+        'uri': str(),
+        'branch': str(),
+        'commit': str(),
+        'xov_base_uri': str(),
+        'xov_base_branch': str(),
+        'xov_base_revision': str(),
+        'xov_base_proto': str(),
+        'xov_board_uri': str()
+    }
 
     def test_uri(self):
         self.data_values['uri'] = 'gitsrv:genbox/profiles-project'
@@ -121,14 +128,15 @@ XOV_BOARD_URI=%(xov_board_uri)s
         my_ebuild = TargetEbuildContent(self.data % self.data_values)
 
         mock_exists.return_value = True
-        self.assertFalse(my_ebuild.write_into('mock', force = False))
+        self.assertFalse(my_ebuild.write_into('mock', force=False))
 
-        mock_open.return_value = MagicMock(spec = file)
-        self.assertTrue(my_ebuild.write_into('mock', force = True))
+        mock_open.return_value = MagicMock(spec=file)
+        self.assertTrue(my_ebuild.write_into('mock', force=True))
 
         mock_exists.return_value = False
         mock_open.side_effect = IOError(13)
         self.assertFalse(my_ebuild.write_into('mock'))
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()

@@ -26,9 +26,9 @@ from portage import db, root, settings
 from portage.exception import InvalidAtom
 from portage.versions import catpkgsplit
 
-class Ebuild(object):
 
-    def __init__(self, atom, verbose = False):
+class Ebuild(object):
+    def __init__(self, atom, verbose=False):
         self.verbose = verbose
         self.cpv = self.__best_match(atom)
         if not self.cpv:
@@ -42,7 +42,7 @@ class Ebuild(object):
         settings['ACCEPT_KEYWORDS'] = '*'
         settings.lock()
 
-        self.portage_db = db[root]["porttree"].dbapi
+        self.portage_db = db[root]['porttree'].dbapi
         try:
             return self.portage_db.xmatch('bestmatch-visible', atom)
         except InvalidAtom:
@@ -104,4 +104,3 @@ class Ebuild(object):
     @property
     def eapi(self):
         return self.__get('EAPI')
-

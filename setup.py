@@ -19,29 +19,24 @@
 #
 #
 
-from distutils.core import setup, Command
+from __future__ import print_function
 
-from unittest import TextTestRunner, TestLoader
-from glob import glob
-from os.path import splitext, basename, join as pjoin, walk
+from setuptools import setup, Command
+
+import glob
 import os
+import subprocess
 import sys
+from unittest import TextTestRunner, TestLoader
 
-packages = [
-            'xintegtools',
-            'xintegtools.xbump',
-            'xintegtools.xchecker',
-            'xintegtools.xreport',
-           ]
 
 class TestCoverage(object):
-
     def __init__(self):
         try:
             import coverage
             self.cov = coverage
         except:
-            print "Can't find the coverage module"
+            print("Can't find the coverage module")
             self.cov = None
             return
 
@@ -56,21 +51,22 @@ class TestCoverage(object):
             return
         self.cov.stop()
 
-    def report(self):
+    def report(self, packages):
         if not self.cov:
             return
-        print "\nCoverage report:"
+        print('\nCoverage report:')
         report_list = []
         for package in packages:
             for root, dir, files in os.walk(package):
                 for file in files:
                     if file.endswith('.py'):
-                        report_list.append("%s/%s" % (root, file))
+                        report_list.append('%s/%s' % (root, file))
         self.cov.report(report_list)
 
+
 class TestCommand(Command):
-    user_options = [ ( 'coverage', 'c', 'Enable coverage output' ) ]
-    boolean_options = [ 'coverage' ]
+    user_options = [('coverage', 'c', 'Enable coverage output')]
+    boolean_options = ['coverage']
 
     def initialize_options(self):
         self._dir = os.getcwd()
@@ -87,44 +83,66 @@ class TestCommand(Command):
             cov = TestCoverage()
             cov.start()
 
-        testfiles = [ ]
-        for t in glob(pjoin(self._dir, 'tests', 'test_xbump_*.py')):
+        testfiles = []
+        for t in glob.glob(os.path.join(self._dir, 'tests', 'test_xbump_*.py')):
             if not t.endswith('__init__.py'):
-                testfiles.append('.'.join(
-                    ['tests', splitext(basename(t))[0]])
-                )
+                testfiles.append('.'.join(['tests', os.path.splitext(os.path.basename(t))[0]]))
 
         tests = TestLoader().loadTestsFromNames(testfiles)
-        t = TextTestRunner(verbosity = 1)
+        t = TextTestRunner(verbosity=1)
         ts = t.run(tests)
 
         if self.coverage:
             cov.stop()
-            cov.report()
-	
-	if not ts.wasSuccessful():
+            cov.report(self.distribution.packages)
+
+        if not ts.wasSuccessful():
             sys.exit(1)
 
-def find_packages(dir):
-    packages = []
-    for root, dir, files in os.walk(dir):
-        if '__init__.py' in files:
-            packages.append(root.replace('/', '.'))
-    return packages
+
+class FmtCommand(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    @staticmethod
+    def _find_py():
+        """ find -name \*.py """
+        for root, _, files in os.walk('.'):
+            for fname in files:
+                if os.path.splitext(fname)[1] == '.py':
+                    yield os.path.join(root, fname)
+
+    def run(self):
+        print('* running unify')
+        subprocess.check_call(['unify', '-i', '-r', '.'])
+        print('* running yapf')
+        subprocess.check_call(['yapf', '-i'] + list(self._find_py()))
+
 
 setup(
-    name = "xintegtools",
-    version = "3.1.1",
-    description = "Xintegtools for genbox",
-    author = "Wyplay",
-    author_email = "noreply@wyplay.com",
-    url = "http://www.wyplay.com",
-    packages = packages,
-    scripts = [
-               "scripts/xbump",
-               "scripts/xreport",
-              ],
-    long_description = """xintegtools for genbox like xbump, xreport""", 
-    cmdclass = { 'test' : TestCommand }
+    name='xintegtools',
+    version='3.1.1',
+    description='Xintegtools for genbox',
+    author='Wyplay',
+    author_email='noreply@wyplay.com',
+    url='http://www.wyplay.com',
+    packages=[
+        'xintegtools',
+        'xintegtools.xbump',
+        'xintegtools.xreport',
+    ],
+    scripts=[
+        'scripts/xbump',
+        'scripts/xreport',
+    ],
+    long_description="""xintegtools for genbox like xbump, xreport""",
+    cmdclass={
+        'test': TestCommand,
+        'fmt': FmtCommand,
+    }
 )
-
