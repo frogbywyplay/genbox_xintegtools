@@ -1,0 +1,9 @@
+
+[MESSAGES CONTROL]
+disable=invalid-name,missing-docstring,too-many-locals,too-many-branches,too-many-statements,too-few-public-methods,too-many-instance-attributes,fixme,bad-continuation,too-many-nested-blocks
+
+[FORMAT]
+max-line-length=120
+
+[TYPECHECK]
+generated-members=color.*
