@@ -18,11 +18,10 @@
 #
 #
 
+import errno
 from xml.sax import handler, make_parser
 
 from xutils import XUtilsError
-
-from errno import ENOENT
 
 
 class packageParser(handler.ContentHandler):
@@ -31,6 +30,7 @@ class packageParser(handler.ContentHandler):
         self.db = {}
         self.current = None
         self.setState(self.defaultStart, None)
+        self.flags = None
 
     def clear(self):
         self.db = {}
@@ -57,10 +57,10 @@ class packageParser(handler.ContentHandler):
             }
             self.setState(self.pkgProcess, self.pkgEnd)
 
-    def defaultEnd(self, name):
+    def defaultEnd(self, _):
         self.setState(self.defaultStart, None)
 
-    def pkgProcess(self, name, attrs):
+    def pkgProcess(self, name, _):
         if name == 'use_flags':
             self.flags = {}
             self.setState(self.useStart, self.pkgEnd)
@@ -89,6 +89,7 @@ class XCompare(object):
         self.old_db = self.new_db = None
         self.parser = make_parser()
         self.pkgParser = None
+        self.pkg_diff = None
 
     def _load(self, filename):
         if not self.pkgParser:
@@ -99,7 +100,7 @@ class XCompare(object):
         try:
             self.parser.parse(filename)
         except IOError, e:
-            if e.errno == ENOENT:
+            if e.errno == errno.ENOENT:
                 raise XUtilsError("Can't find \"%s\"" % filename)
             else:
                 raise e
@@ -113,7 +114,8 @@ class XCompare(object):
 
         self.pkgParser = None
 
-    def _compare_flags(self, old_flags, new_flags):
+    @staticmethod
+    def _compare_flags(old_flags, new_flags):
         flags = {}
         if not (old_flags or new_flags):
             return None

@@ -18,7 +18,9 @@
 #
 #
 
-from report import XReport  # noqa
-from cmdline import XReportCmdline, XCompareCmdline  # noqa
-from output_xml import XReportXMLOutput, XCompareXMLOutput  # noqa
-from output_txt import XReportTXTOutput, XCompareTXTOutput  # noqa
+from __future__ import absolute_import
+
+from xintegtools.xreport.report import XReport  # noqa
+from xintegtools.xreport.cmdline import XReportCmdline, XCompareCmdline  # noqa
+from xintegtools.xreport.output_xml import XReportXMLOutput, XCompareXMLOutput  # noqa
+from xintegtools.xreport.output_txt import XReportTXTOutput, XCompareTXTOutput  # noqa

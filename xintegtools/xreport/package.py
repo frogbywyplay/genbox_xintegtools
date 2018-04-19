@@ -17,38 +17,39 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
+from __future__ import absolute_import
 
-import os, errno
+import errno
+import hashlib
+import os
 import stat
 
-from pkgsplit import pkgsplit
-from hashlib import md5
-from report_utils import readfile
+from portage.versions import pkgsplit
 
 
 def md5sum(fname):
     '''Returns an md5 hash for a file with read() method.'''
-    f = file(fname, 'rb')
-    m = md5()
-    while True:
-        d = f.read(8096)
-        if not d:
-            break
-        m.update(d)
-    f.close()
+    m = hashlib.md5()
+    with open(fname, 'rb') as f:
+        while True:
+            d = f.read(8096)
+            if not d:
+                break
+            m.update(d)
     return m.hexdigest()
 
 
 class XPackageFile(object):
     _status = ['ENOENT', 'ECHKSUM', 'EMTIME']
 
-    def __init__(self, name, type):
+    def __init__(self, name, type_):
         self.name = name.decode('utf-8')
-        self.type = type
+        self.type = type_
         self.checked = False
         self.md5sum = None
         self.mtime = None
         self.status = {}
+        self.dest = None
 
     def set_mtime(self, mtime):
         self.mtime = int(mtime)
@@ -61,7 +62,7 @@ class XPackageFile(object):
 
     def _check_obj(self, root):
         try:
-            stat = os.stat(root + self.name)
+            stat_ = os.stat(root + self.name)
         except OSError, e:
             if e.errno == errno.ENOENT:
                 self.status['ENOENT'] = True
@@ -73,8 +74,8 @@ class XPackageFile(object):
             self.status['ECHKSUM'] = md5
             return False
 
-        if stat.st_mtime != self.mtime:
-            self.status['EMTIME'] = stat.st_mtime
+        if stat_.st_mtime != self.mtime:
+            self.status['EMTIME'] = stat_.st_mtime
             return False
 
         return True
@@ -86,7 +87,7 @@ class XPackageFile(object):
         return True
 
 
-class XPackage(object):
+class XPackage(object):  # pylint: disable=too-many-instance-attributes
     _contents_split_counts = {'dev': 2, 'dir': 2, 'fif': 2, 'obj': 4, 'sym': 5}
 
     def __init__(self, vdbdir, cat=None, name=None):
@@ -110,13 +111,14 @@ class XPackage(object):
 
         self.load_pkg(vdbdir)
 
-    def _load_contents(self, vdbdir):
+    def _load_contents(self, vdbdir):  # pylint: disable=too-many-branches
         if self.pkgfiles:
             del self.pkgfiles
         self.pkgfiles = []
         null_byte = '\0'
 
-        lines = readfile(vdbdir + '/CONTENTS')
+        with open(os.path.join(vdbdir, 'CONTENTS')) as fl:
+            lines = fl.readlines()
         for pos, line in enumerate(lines):
             if null_byte in line:
                 # Null bytes are a common indication of corruption.
@@ -144,7 +146,7 @@ class XPackage(object):
                         mydat = mydat[:-10] + [mydat[-10:][stat.ST_MTIME][:-1]]
                         x = len(mydat) - 1
                     splitter = -1
-                    while (x >= 0):
+                    while x >= 0:
                         if mydat[x] == '->':
                             splitter = x
                             break
@@ -171,36 +173,39 @@ class XPackage(object):
             del self.uses
 
         try:
-            iuse = readfile(vdbdir + '/IUSE', True).split()
+            with open(os.path.join(vdbdir, 'IUSE')) as fl:
+                iuse = fl.readline().split()
         except IOError:
             # No use flags for this package
             return
 
         self.uses = {}
 
-        use = readfile(vdbdir + '/USE', True).split()
+        with open(os.path.join(vdbdir, 'USE')) as fl:
+            use = fl.readline().split()
         for flag in iuse:
-            if flag in use:
-                self.uses[flag] = True
-            else:
-                self.uses[flag] = False
+            self.uses[flag] = flag in use
 
     def _load_license(self, vdbdir):
         try:
-            licenses = readfile(vdbdir + '/LICENSE', True)
+            with open(os.path.join(vdbdir, 'LICENSE')) as fl:
+                licenses = fl.readline().strip()
         except IOError:
             return
         self.licenses = licenses.split()
 
         try:
-            choosen = readfile(vdbdir + '/LICENSE_CHOOSEN', True).strip()
+            with open(os.path.join(vdbdir, 'LICENSE_CHOOSEN')) as fl:
+                choosen = fl.readline().strip()
             for l in self.licenses:
                 if l == choosen:
                     self.license_choosen = l
                     break
         except IOError:
-            if len(self.licenses) > 1:
+            try:
                 self.license_choosen = licenses[0]
+            except IndexError:
+                pass
 
         if os.path.exists(vdbdir + '/PUBLIC'):
             self.public = True
@@ -210,7 +215,8 @@ class XPackage(object):
         try:
             for kk, vv in [('uri', 'EHG_REPO_URI'), ('branch', 'EHG_BRANCH'), ('revision', 'EHG_REVISION')]:
                 # split is to avoid extra '\n'
-                scm[kk] = readfile('%s/%s' % (vdbdir, vv), True).split()[0]
+                with open(os.path.join(vdbdir, vv)) as fl:
+                    scm[kk] = fl.readline().split()[0]
         except IOError:
             # don't know what to do
             pass
@@ -224,7 +230,8 @@ class XPackage(object):
                        ('revision', 'EGIT_REV')]:
             # split is to avoid extra '\n'
             try:
-                scm[kk] = readfile('%s/%s' % (vdbdir, vv), True).split()[0]
+                with open(os.path.join(vdbdir, vv)) as fl:
+                    scm[kk] = fl.readline().split()[0]
             except IOError:
                 pass  #skip missing files
         self.scm = scm
@@ -232,7 +239,8 @@ class XPackage(object):
 
     def _load_scm(self, vdbdir):
         try:
-            inherited = readfile('%s/INHERITED' % vdbdir, True).split()
+            with open(os.path.join(vdbdir, 'INHERITED')) as fl:
+                inherited = fl.readline().split()
             if 'mercurial' in inherited:
                 self._load_mercurial(vdbdir)
             elif 'git' in inherited:

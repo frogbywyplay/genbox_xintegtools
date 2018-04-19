@@ -17,12 +17,13 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
+from __future__ import absolute_import
 
 import sys
 
 from xutils import color, info, is_verbose, die
 
-from output import XReportOutput, XCompareOutput
+from xintegtools.xreport.output import XReportOutput, XCompareOutput
 
 
 class XReportTXTOutput(XReportOutput):
@@ -33,7 +34,7 @@ class XReportTXTOutput(XReportOutput):
         info('Target VDB report', output=output_file)
         print >> output_file, ''
 
-    def _package(self, pkg, output_file):
+    def _package(self, pkg, output_file):  # pylint: disable=too-many-branches
         total_files = len(pkg.pkgfiles)
         if self.errors_only and pkg.res == total_files:
             return
@@ -43,30 +44,30 @@ class XReportTXTOutput(XReportOutput):
         else:
             res_str = color.yellow('%i/%i' % (pkg.res, total_files))
         print >> output_file, '   Checked: %s files' % res_str
-        if pkg.res != total_files:
-            for file in pkg.pkgfiles:
-                if file.status and len(file.status):
-                    for error in file.status:
+        if pkg.res != total_files:  # pylint: disable=too-many-nested-blocks
+            for file_ in pkg.pkgfiles:
+                if file_.status and len(file_.status):
+                    for error in file_.status:
                         if error == 'EMTIME':
-                            out_str = '%s: %s' % (color.red('MTIME'), file.name)
+                            out_str = '%s: %s' % (color.red('MTIME'), file_.name)
                             if is_verbose():
-                                out_str += " (recorded '%i'!= actual '%i')" % (file.mtime, file.status['EMTIME'])
+                                out_str += " (recorded '%i'!= actual '%i')" % (file_.mtime, file_.status['EMTIME'])
                         elif error == 'ECHKSUM':
-                            out_str = '%s: %s' % (color.red('MD5-DIGEST'), file.name)
+                            out_str = '%s: %s' % (color.red('MD5-DIGEST'), file_.name)
                             if is_verbose():
-                                out_str += " (recorded '%s'!= actual '%s')" % (file.md5sum, file.status['ECHKSUM'])
+                                out_str += " (recorded '%s'!= actual '%s')" % (file_.md5sum, file_.status['ECHKSUM'])
                         elif error == 'ENOENT':
-                            out_str = '%s: %s' % (color.red('AFK'), file.name)
+                            out_str = '%s: %s' % (color.red('AFK'), file_.name)
                         else:
-                            out_str = '%s: %s' % (color.red('UNKNOWN'), file.name)
+                            out_str = '%s: %s' % (color.red('UNKNOWN'), file_.name)
                         print >> output_file, '   ' + out_str
         print >> output_file, ''
 
     def _collisions(self, collisions, output_file):
         info('Packages file collision', output=output_file)
-        for file in collisions:
-            out_str = '   %s:' % file
-            for pkg in collisions[file]:
+        for file_ in collisions:
+            out_str = '   %s:' % file_
+            for pkg in collisions[file_]:
                 out_str += ' %s' % pkg
             print >> output_file, out_str
         print >> output_file, ''
@@ -81,7 +82,8 @@ class XCompareTXTOutput(XCompareOutput):
     def __init__(self):
         XCompareOutput.__init__(self)
 
-    def _process_version(self, old, new):
+    @staticmethod
+    def _process_version(old, new):
         if old:
             if new:
                 return '    Update: %s -> %s\n' % (color.blue(old), color.green(new))
@@ -92,17 +94,18 @@ class XCompareTXTOutput(XCompareOutput):
         else:
             return ''
 
-    def _get_flag(self, use, type, val):
+    @staticmethod
+    def _get_flag(use, type_, val):
         if val != '1':
             use = '-%s' % use
-        if type == 'new':
+        if type_ == 'new':
             return color.yellow(use) + '%'
-        elif type == 'mod':
+        elif type_ == 'mod':
             if val == '1':
                 return color.red(use)
             else:
                 return color.blue(use)
-        elif type == 'rem':
+        elif type_ == 'rem':
             return '(%s)' % color.yellow(use)
 
     def _process_flags(self, flags):

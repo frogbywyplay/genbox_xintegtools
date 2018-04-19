@@ -17,6 +17,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
+from __future__ import absolute_import
 
 import sys
 
@@ -24,7 +25,7 @@ import xml.etree.ElementTree as etree
 
 from xutils import die
 
-from output import XReportOutput, XCompareOutput
+from xintegtools.xreport.output import XReportOutput, XCompareOutput
 
 
 class XReportXMLOutput(XReportOutput):
@@ -47,7 +48,7 @@ class XReportXMLOutput(XReportOutput):
     def _footer(self, output_file):
         self.packages = None
 
-    def _package(self, pkg, output_file):
+    def _package(self, pkg, output_file):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         total_files = len(pkg.pkgfiles)
         if self.errors_only and pkg.res == total_files:
             return
@@ -83,32 +84,32 @@ class XReportXMLOutput(XReportOutput):
 
         if self.errors_only and (pkg.res == total_files):
             return
-        for file in pkg.pkgfiles:
-            if self.errors_only and not (file.status and len(file.status)):
+        for file_ in pkg.pkgfiles:
+            if self.errors_only and not (file_.status and len(file_.status)):
                 continue
             # Omit directories (not really useful)
-            if file.type == 'dir':
+            if file_.type == 'dir':
                 continue
-            xml_file = etree.Element('file', name=file.name, type=file.type)
+            xml_file = etree.Element('file', name=file_.name, type=file_.type)
             xml_contents.append(xml_file)
-            if file.md5sum is not None:
+            if file_.md5sum is not None:
                 md5 = etree.Element('md5')
-                md5.text = file.md5sum
+                md5.text = file_.md5sum
                 xml_file.append(md5)
-            if file.mtime is not None:
+            if file_.mtime is not None:
                 mtime = etree.Element('mtime')
-                mtime.text = str(file.mtime)
+                mtime.text = str(file_.mtime)
                 xml_file.append(mtime)
 
-            if file.status and len(file.status):
+            if file_.status and len(file_.status):
                 xml_rep = etree.Element('report')
                 xml_file.append(xml_rep)
 
-                for error in file.status:
+                for error in file_.status:
                     if error == 'EMTIME':
-                        xml_rep.append(etree.Element('EMTIME', mtime=str(file.status['EMTIME'])))
+                        xml_rep.append(etree.Element('EMTIME', mtime=str(file_.status['EMTIME'])))
                     elif error == 'ECHKSUM':
-                        xml_rep.append(etree.Element('ECHKSUM', md5=file.status['ECHKSUM']))
+                        xml_rep.append(etree.Element('ECHKSUM', md5=file_.status['ECHKSUM']))
                     elif error == 'ENOENT':
                         xml_rep.append(etree.Element('ENOENT'))
                     else:
@@ -130,8 +131,8 @@ class XReportXMLOutput(XReportOutput):
             return
         xml_col = etree.Element('collisions')
         self.root.append(xml_col)
-        for file, pkgs in sorted(collisions.items()):
-            xml_file = etree.Element('file', name=file)
+        for file_, pkgs in sorted(collisions.items()):
+            xml_file = etree.Element('file', name=file_)
             xml_col.append(xml_file)
             for pkg in pkgs:
                 xml_file.append(etree.Element('package', name=pkg))
@@ -144,7 +145,7 @@ class XReportXMLOutput(XReportOutput):
         for orphan in sorted(orphans.keys()):
             xml_orp.append(etree.Element('file', name=orphan))
 
-    def process(self, report, output_file):
+    def process(self, report, output_file=sys.stdout):
         XReportOutput.process(self, report, output_file)
         indent(self.root)
         self.tree.write(output_file, 'utf-8')
@@ -155,8 +156,9 @@ class XCompareXMLOutput(XCompareOutput):
         self.root = None
         self.tree = None
         XCompareOutput.__init__(self)
+        self.packages = None
 
-    def _header(self, output_file):
+    def _header(self, _):
         if self.root is not None:
             del self.root
         if self.tree is not None:
@@ -166,10 +168,11 @@ class XCompareXMLOutput(XCompareOutput):
         self.root.append(self.packages)
         self.tree = etree.ElementTree(self.root)
 
-    def _footer(self, output_file):
+    def _footer(self, _):
         self.packages = None
 
-    def _process_version(self, old, new):
+    @staticmethod
+    def _process_version(old, new):
         xml_vers = None
         if old:
             xml_vers = etree.Element('version')
@@ -184,15 +187,16 @@ class XCompareXMLOutput(XCompareOutput):
             xml_vers.append(xml_new)
         return xml_vers
 
-    def _get_flag(self, use, type, val):
+    @staticmethod
+    def _get_flag(use, type_, val):
         xml_use = etree.Element('use', name=use)
-        if type == 'new':
+        if type_ == 'new':
             xml_use.set('mod', 'new')
             xml_use.set('val', val)
-        elif type == 'mod':
+        elif type_ == 'mod':
             xml_use.set('mod', 'mod')
             xml_use.set('val', val)
-        elif type == 'rem':
+        elif type_ == 'rem':
             xml_use.set('mod', 'rem')
         return xml_use
 

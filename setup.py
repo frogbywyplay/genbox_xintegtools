@@ -21,13 +21,13 @@
 
 from __future__ import print_function
 
-from setuptools import setup, Command
-
 import glob
 import os
 import subprocess
 import sys
 from unittest import TextTestRunner, TestLoader
+
+from setuptools import setup, Command
 
 
 class TestCoverage(object):
@@ -35,7 +35,7 @@ class TestCoverage(object):
         try:
             import coverage
             self.cov = coverage
-        except:
+        except ImportError:
             print("Can't find the coverage module")
             self.cov = None
             return
@@ -57,16 +57,19 @@ class TestCoverage(object):
         print('\nCoverage report:')
         report_list = []
         for package in packages:
-            for root, dir, files in os.walk(package):
-                for file in files:
-                    if file.endswith('.py'):
-                        report_list.append('%s/%s' % (root, file))
+            for root, _, files in os.walk(package):
+                for file_ in files:
+                    if file_.endswith('.py'):
+                        report_list.append('%s/%s' % (root, file_))
         self.cov.report(report_list)
 
 
 class TestCommand(Command):
     user_options = [('coverage', 'c', 'Enable coverage output')]
     boolean_options = ['coverage']
+
+    _dir = None
+    coverage = None
 
     def initialize_options(self):
         self._dir = os.getcwd()
@@ -111,7 +114,7 @@ class FmtCommand(Command):
 
     @staticmethod
     def _find_py():
-        """ find -name \*.py """
+        r""" find -name \*.py """
         for root, _, files in os.walk('.'):
             for fname in files:
                 if os.path.splitext(fname)[1] == '.py':

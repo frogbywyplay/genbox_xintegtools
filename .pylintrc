@@ -1,0 +1,6 @@
+[MESSAGES CONTROL]
+disable=missing-docstring,invalid-name,duplicate-code,fixme,too-few-public-methods,locally-disabled
+[FORMAT]
+max-line-length=120
+[TYPECHECK]
+generated-members=codes.ok,portage.portdb,color.*

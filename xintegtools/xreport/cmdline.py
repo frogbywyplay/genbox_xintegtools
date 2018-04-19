@@ -17,12 +17,13 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
+from __future__ import absolute_import
 
 import sys
 
 from xutils import die, vinfo, is_verbose, XUtilsError
-from report import XReport
-from compare import XCompare
+from xintegtools.xreport.report import XReport
+from xintegtools.xreport.compare import XCompare
 
 
 class XReportCmdline(XReport):
@@ -39,7 +40,7 @@ class XReportCmdline(XReport):
         if not is_verbose():
             return
         curr = curr * 100 / total
-        for i in range(self.prog_cnt):
+        for _ in range(self.prog_cnt):
             sys.stdout.write('\b')
         prog_str = ' %3i%% ' % curr
         self.prog_cnt = len(prog_str)
@@ -58,7 +59,7 @@ class XReportCmdline(XReport):
         except XUtilsError, e:
             die(str(e))
 
-    def vdb_check(self):
+    def vdb_check(self, _=None):
         try:
             vinfo('Building file list ...')
             XReport.filelist_create(self)
