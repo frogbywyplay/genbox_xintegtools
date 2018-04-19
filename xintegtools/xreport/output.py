@@ -32,7 +32,7 @@ class XReportOutput(object):
     def _footer(self, output_file):
         pass
 
-    def _package(self, pkg, output_file):
+    def _package(self, pkg, output_file, with_deps):
         pass
 
     def _collisions(self, collisions, output_file):
@@ -41,15 +41,15 @@ class XReportOutput(object):
     def _orphans(self, orphans, output_file):
         pass
 
-    def process(self, report, output_file=sys.stdout):
+    def process(self, report, output_file=sys.stdout, with_deps=False):
         self._header(output_file)
         for pkg in report.vdb:
-            self._package(pkg, output_file)
+            self._package(pkg, output_file, with_deps)
 
-        if report.vdb_collisions and len(report.vdb_collisions):
+        if report.vdb_collisions:
             self._collisions(report.vdb_collisions, output_file)
 
-        if report.vdb_orphans and len(report.vdb_orphans):
+        if report.vdb_orphans:
             self._orphans(report.vdb_orphans, output_file)
         self._footer(output_file)
 

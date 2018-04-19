@@ -28,6 +28,38 @@ from xutils import die
 from xintegtools.xreport.output import XReportOutput, XCompareOutput
 
 
+def cpv_tuple_to_xml(tag, cpv_tuple):
+    return etree.Element(tag, name=cpv_tuple[1], version=cpv_tuple[2], category=cpv_tuple[0])
+
+
+def dep_use_flag_to_xml(flag):
+    return etree.Element('use', name=flag)
+
+
+def dep_use_flags_to_xml(flags):
+    el = etree.Element('use_flags')
+    if flags:
+        for flag in flags:
+            el.append(dep_use_flag_to_xml(flag))
+    return el
+
+
+def x_package_dependency_to_xml(dep):
+    el = cpv_tuple_to_xml('dependency', dep.cpv_tuple)
+    if dep.uses:
+        el.append(dep_use_flags_to_xml(dep.uses))
+    if dep.virtual_cpv_tuple:
+        el.append(cpv_tuple_to_xml('virtual', dep.virtual_cpv_tuple))
+    return el
+
+
+def x_package_dependencies_to_xml(deps):
+    el = etree.Element('dependencies')
+    for dep in deps:
+        el.append(x_package_dependency_to_xml(dep))
+    return el
+
+
 class XReportXMLOutput(XReportOutput):
     def __init__(self, errors_only=False, contents=False):
         self.root = None
@@ -48,7 +80,7 @@ class XReportXMLOutput(XReportOutput):
     def _footer(self, output_file):
         self.packages = None
 
-    def _package(self, pkg, output_file):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    def _package(self, pkg, output_file, with_deps):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         total_files = len(pkg.pkgfiles)
         if self.errors_only and pkg.res == total_files:
             return
@@ -126,6 +158,9 @@ class XReportXMLOutput(XReportOutput):
                 except KeyError:
                     pass
 
+        if with_deps:
+            xml_pkg.append(x_package_dependencies_to_xml(pkg.deps()))
+
     def _collisions(self, collisions, output_file):
         if not collisions or len(collisions) == 0:
             return
@@ -145,7 +180,7 @@ class XReportXMLOutput(XReportOutput):
         for orphan in sorted(orphans.keys()):
             xml_orp.append(etree.Element('file', name=orphan))
 
-    def process(self, report, output_file=sys.stdout):
+    def process(self, report, output_file=sys.stdout, with_deps=False):
         XReportOutput.process(self, report, output_file)
         indent(self.root)
         self.tree.write(output_file, 'utf-8')

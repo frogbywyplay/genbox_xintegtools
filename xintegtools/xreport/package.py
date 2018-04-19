@@ -24,7 +24,10 @@ import hashlib
 import os
 import stat
 
-from portage.versions import pkgsplit
+from portage.versions import pkgsplit, catpkgsplit
+
+import gentoolkit.helpers
+import gentoolkit.query
 
 
 def md5sum(fname):
@@ -87,6 +90,52 @@ class XPackageFile(object):
         return True
 
 
+class XPackageDependency(object):
+    def __init__(self, cpv_tuple, uses, virtual_cpv_tuple):
+        self.cpv_tuple = cpv_tuple
+        self.uses = uses
+        self.virtual_cpv_tuple = virtual_cpv_tuple
+
+
+class XPackageDependencies(object):
+    def __init__(self, cpv_tuple):
+        self.cpv_tuple = cpv_tuple
+
+    @staticmethod
+    def catpkgsplit(cpv):
+        split = catpkgsplit(cpv)
+        if not split:
+            split = catpkgsplit('%s-0' % (cpv, ))
+        if not split:
+            return split
+        c, p, v, r = split
+        if r != 'r0' or cpv[-3:] == 'r0':
+            v = '%s-%s' % (v, r)
+        return c, p, v
+
+    def __iter__(self):
+        pkg = gentoolkit.query.Query('={}/{}-{}'.format(*self.cpv_tuple)).find_best()
+        if not pkg:
+            return
+        if pkg.category == 'virtual':
+            for a in pkg.deps.get_all_depends():
+                installed = gentoolkit.query.Query(a.cpv).find_installed()
+                if installed:
+                    yield XPackageDependency(self.catpkgsplit(installed[0]), None, None)
+        else:
+            for a in pkg.deps.get_all_depends():
+                if a.category == 'virtual':
+                    virtpkg = gentoolkit.query.Query(a.cpv).find_best()
+                    if not virtpkg:
+                        continue
+                    for va in virtpkg.deps.get_all_depends():
+                        installed = gentoolkit.query.Query(va.cpv).find_installed()
+                        if installed:
+                            yield XPackageDependency(self.catpkgsplit(installed[0]), None, self.catpkgsplit(a.cpv))
+                else:
+                    yield XPackageDependency(self.catpkgsplit(a.cpv), None, None)
+
+
 class XPackage(object):  # pylint: disable=too-many-instance-attributes
     _contents_split_counts = {'dev': 2, 'dir': 2, 'fif': 2, 'obj': 4, 'sym': 5}
 
@@ -110,6 +159,9 @@ class XPackage(object):  # pylint: disable=too-many-instance-attributes
             self.version = '-'.join(pkg_split[1:])
 
         self.load_pkg(vdbdir)
+
+    def deps(self):
+        return XPackageDependencies((self.cat, self.short_name, self.version))
 
     def _load_contents(self, vdbdir):  # pylint: disable=too-many-branches
         if self.pkgfiles:

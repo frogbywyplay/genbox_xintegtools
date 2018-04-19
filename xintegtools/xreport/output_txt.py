@@ -34,7 +34,7 @@ class XReportTXTOutput(XReportOutput):
         info('Target VDB report', output=output_file)
         print >> output_file, ''
 
-    def _package(self, pkg, output_file):  # pylint: disable=too-many-branches
+    def _package(self, pkg, output_file, with_deps):  # pylint: disable=too-many-branches
         total_files = len(pkg.pkgfiles)
         if self.errors_only and pkg.res == total_files:
             return
