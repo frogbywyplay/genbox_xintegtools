@@ -21,6 +21,7 @@
 
 from __future__ import print_function
 
+import contextlib
 import glob
 import os
 import subprocess
@@ -29,50 +30,42 @@ from unittest import TextTestRunner, TestLoader
 
 from setuptools import setup, Command
 
+try:
+    import coverage
 
-class TestCoverage(object):
-    def __init__(self):
-        try:
-            import coverage
-            self.cov = coverage
-        except ImportError:
-            print("Can't find the coverage module")
-            self.cov = None
-            return
+    @contextlib.contextmanager
+    def cov(packages):
+        def report_list_aux():
+            for package in packages:
+                for root, _, files in os.walk(package):
+                    for fname in files:
+                        if fname.endswith('.py'):
+                            yield os.path.join(root, fname)
 
-    def start(self):
-        if not self.cov:
-            return
-        self.cov.erase()
-        self.cov.start()
-
-    def stop(self):
-        if not self.cov:
-            return
-        self.cov.stop()
-
-    def report(self, packages):
-        if not self.cov:
-            return
+        report_list = list(set(report_list_aux()))
+        c = coverage.Coverage()
+        c.erase()
+        c.start()
+        yield
+        c.stop()
         print('\nCoverage report:')
-        report_list = []
-        for package in packages:
-            for root, _, files in os.walk(package):
-                for file_ in files:
-                    if file_.endswith('.py'):
-                        report_list.append('%s/%s' % (root, file_))
-        self.cov.report(report_list)
+        c.report(report_list)
+
+except ImportError:
+    print("Can't find the coverage module")
+
+    @contextlib.contextmanager
+    def cov(_):
+        yield
 
 
 class TestCommand(Command):
     user_options = [('coverage', 'c', 'Enable coverage output')]
     boolean_options = ['coverage']
 
-    _dir = None
     coverage = None
 
     def initialize_options(self):
-        self._dir = os.getcwd()
         self.coverage = False
 
     def finalize_options(self):
@@ -82,22 +75,16 @@ class TestCommand(Command):
         '''
         Finds all the tests modules in tests/, and runs them.
         '''
-        if self.coverage:
-            cov = TestCoverage()
-            cov.start()
 
-        testfiles = []
-        for t in glob.glob(os.path.join(self._dir, 'tests', 'test_xbump_*.py')):
-            if not t.endswith('__init__.py'):
-                testfiles.append('.'.join(['tests', os.path.splitext(os.path.basename(t))[0]]))
+        testfiles = [
+            '.'.join(['tests', os.path.splitext(os.path.basename(t))[0]])
+            for t in glob.glob(os.path.join('tests', 'test_xbump_*.py')) if not t.endswith('__init__.py')
+        ]
 
-        tests = TestLoader().loadTestsFromNames(testfiles)
-        t = TextTestRunner(verbosity=1)
-        ts = t.run(tests)
-
-        if self.coverage:
-            cov.stop()
-            cov.report(self.distribution.packages)
+        with cov(self.distribution.packages):
+            tests = TestLoader().loadTestsFromNames(testfiles)
+            t = TextTestRunner(verbosity=1)
+            ts = t.run(tests)
 
         if not ts.wasSuccessful():
             sys.exit(1)

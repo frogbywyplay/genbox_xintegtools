@@ -17,7 +17,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import errno
 import hashlib
@@ -121,7 +121,8 @@ class XPackageDependencies(object):
             for a in pkg.deps.get_all_depends():
                 installed = gentoolkit.query.Query(a.cpv).find_installed()
                 if installed:
-                    yield XPackageDependency(self.catpkgsplit(installed[0]), None, None)
+                    yield XPackageDependency(self.catpkgsplit(installed[0].cpv), None, None)
+                    break
         else:
             for a in pkg.deps.get_all_depends():
                 if a.category == 'virtual':
@@ -131,9 +132,12 @@ class XPackageDependencies(object):
                     for va in virtpkg.deps.get_all_depends():
                         installed = gentoolkit.query.Query(va.cpv).find_installed()
                         if installed:
-                            yield XPackageDependency(self.catpkgsplit(installed[0]), None, self.catpkgsplit(a.cpv))
+                            yield XPackageDependency(self.catpkgsplit(installed[0].cpv), None, self.catpkgsplit(a.cpv))
+                            break
                 else:
-                    yield XPackageDependency(self.catpkgsplit(a.cpv), None, None)
+                    installed = gentoolkit.query.Query(a.cpv).find_installed()
+                    if installed:
+                        yield XPackageDependency(self.catpkgsplit(installed[0].cpv), None, None)
 
 
 class XPackage(object):  # pylint: disable=too-many-instance-attributes
@@ -218,7 +222,7 @@ class XPackage(object):  # pylint: disable=too-many-instance-attributes
                 else:
                     return None
             except (KeyError, IndexError):
-                print 'package: CONTENTS line', pos, 'corrupt!'
+                print('package: CONTENTS line', pos, 'corrupt!')
 
     def _load_uses(self, vdbdir):
         if self.uses:

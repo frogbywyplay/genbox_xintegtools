@@ -17,7 +17,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import sys
 
@@ -32,7 +32,7 @@ class XReportTXTOutput(XReportOutput):
 
     def _header(self, output_file):
         info('Target VDB report', output=output_file)
-        print >> output_file, ''
+        print('', file=output_file)
 
     def _package(self, pkg, output_file, with_deps):  # pylint: disable=too-many-branches
         total_files = len(pkg.pkgfiles)
@@ -43,39 +43,41 @@ class XReportTXTOutput(XReportOutput):
             res_str = color.green('%i/%i' % (pkg.res, total_files))
         else:
             res_str = color.yellow('%i/%i' % (pkg.res, total_files))
-        print >> output_file, '   Checked: %s files' % res_str
-        if pkg.res != total_files:  # pylint: disable=too-many-nested-blocks
-            for file_ in pkg.pkgfiles:
-                if file_.status and len(file_.status):
-                    for error in file_.status:
-                        if error == 'EMTIME':
-                            out_str = '%s: %s' % (color.red('MTIME'), file_.name)
-                            if is_verbose():
-                                out_str += " (recorded '%i'!= actual '%i')" % (file_.mtime, file_.status['EMTIME'])
-                        elif error == 'ECHKSUM':
-                            out_str = '%s: %s' % (color.red('MD5-DIGEST'), file_.name)
-                            if is_verbose():
-                                out_str += " (recorded '%s'!= actual '%s')" % (file_.md5sum, file_.status['ECHKSUM'])
-                        elif error == 'ENOENT':
-                            out_str = '%s: %s' % (color.red('AFK'), file_.name)
-                        else:
-                            out_str = '%s: %s' % (color.red('UNKNOWN'), file_.name)
-                        print >> output_file, '   ' + out_str
-        print >> output_file, ''
+        print('   Checked: %s files' % res_str, file=output_file)
+        if pkg.res == total_files:
+            print('', file=output_file)
+            return
+
+        for file_ in pkg.pkgfiles:
+            if not file_.status:
+                continue
+            for error in file_.status:
+                if error == 'EMTIME':
+                    out_str = '%s: %s' % (color.red('MTIME'), file_.name)
+                    if is_verbose():
+                        out_str += " (recorded '%i'!= actual '%i')" % (file_.mtime, file_.status['EMTIME'])
+                elif error == 'ECHKSUM':
+                    out_str = '%s: %s' % (color.red('MD5-DIGEST'), file_.name)
+                    if is_verbose():
+                        out_str += " (recorded '%s'!= actual '%s')" % (file_.md5sum, file_.status['ECHKSUM'])
+                elif error == 'ENOENT':
+                    out_str = '%s: %s' % (color.red('AFK'), file_.name)
+                else:
+                    out_str = '%s: %s' % (color.red('UNKNOWN'), file_.name)
+                print('   ' + out_str, file=output_file)
+        print('', file=output_file)
 
     def _collisions(self, collisions, output_file):
         info('Packages file collision', output=output_file)
         for file_ in collisions:
-            out_str = '   %s:' % file_
-            for pkg in collisions[file_]:
-                out_str += ' %s' % pkg
-            print >> output_file, out_str
-        print >> output_file, ''
+            out_str = '   %s: %s' % (file_, ' '.join(collisions[file_]))
+            print(out_str, file=output_file)
+        print('', file=output_file)
 
     def _orphans(self, orphans, output_file):
         info('Orphan files ' + color.yellow('(%i)' % len(orphans)), output=output_file)
         for orphan in orphans:
-            print >> output_file, '   %s' % orphan
+            print('   %s' % orphan, file=output_file)
 
 
 class XCompareTXTOutput(XCompareOutput):
@@ -111,15 +113,11 @@ class XCompareTXTOutput(XCompareOutput):
     def _process_flags(self, flags):
         if not flags:
             return ''
-        out_str = '    Flags:'
-        for use, val in flags.iteritems():
-            out_str += ' %s' % self._get_flag(use, val[0], val[1])
-        return out_str + '\n'
+        return '    Flags: %s\n' % (''.join(self._get_flag(use, val[0], val[1]) for use, val in flags.iteritems()), )
 
     def process(self, compare, output_file=sys.stdout):
-        info('Target comparison: %s -> %s' % (compare.old, compare.new),\
-             output=output_file)
-        print >> output_file, ''
+        info('Target comparison: %s -> %s' % (compare.old, compare.new), output=output_file)
+        print('', file=output_file)
         for pkg_id, pkg in compare.pkg_diff.iteritems():
             pkg_name = pkg_id.rsplit(':', 1)
             if pkg_name is None:

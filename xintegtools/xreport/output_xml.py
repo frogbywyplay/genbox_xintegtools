@@ -116,7 +116,7 @@ class XReportXMLOutput(XReportOutput):
 
         if self.errors_only and (pkg.res == total_files):
             return
-        for file_ in pkg.pkgfiles:
+        for file_ in []:
             if self.errors_only and not (file_.status and len(file_.status)):
                 continue
             # Omit directories (not really useful)
@@ -181,7 +181,7 @@ class XReportXMLOutput(XReportOutput):
             xml_orp.append(etree.Element('file', name=orphan))
 
     def process(self, report, output_file=sys.stdout, with_deps=False):
-        XReportOutput.process(self, report, output_file)
+        XReportOutput.process(self, report, output_file, with_deps)
         indent(self.root)
         self.tree.write(output_file, 'utf-8')
 

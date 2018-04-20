@@ -17,6 +17,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
+from __future__ import print_function
 
 from xutils import color, info
 
@@ -68,8 +69,8 @@ class XBugTXTOutput(XBugOutput):
                     ))
 
             if full:
-                print '    %-15s: %-40s' % ('url', '%s/show_bug.cgi?id=%i' % (BUGZILLA_URL, bug_id))
-                print '    %-15s: %-40s' % ('summary', bug.get('summary', ''))
-                print '    %-15s: %-20s' % ('resolution', bug.get('resolution', 'none'))
-                print '    %-15s: %-10s' % ('milestone', bug.get('milestone', 'none'))
-                print
+                print('    %-15s: %-40s' % ('url', '%s/show_bug.cgi?id=%i' % (BUGZILLA_URL, bug_id)))
+                print('    %-15s: %-40s' % ('summary', bug.get('summary', '')))
+                print('    %-15s: %-20s' % ('resolution', bug.get('resolution', 'none')))
+                print('    %-15s: %-10s' % ('milestone', bug.get('milestone', 'none')))
+                print()
