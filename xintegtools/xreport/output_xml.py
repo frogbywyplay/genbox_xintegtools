@@ -41,8 +41,9 @@ def dep_use_flag_to_xml(flag):
 
 def dep_use_flags_to_xml(flags):
     el = etree.Element('use_flags')
-    for flag in flags:
-        el.append(dep_use_flag_to_xml(flag))
+    if flags:
+        for flag in flags:
+            el.append(dep_use_flag_to_xml(flag))
     return el
 
 
@@ -183,7 +184,7 @@ class XReportXMLOutput(XReportOutput):
             xml_orp.append(etree.Element('file', name=orphan))
 
     def process(self, report, output_file=sys.stdout, with_deps=False):
-        XReportOutput.process(report, output_file, with_deps)
+        XReportOutput.process(self, report, output_file, with_deps)
         indent(self.root)
         self.tree.write(output_file, 'utf-8')
 
