@@ -19,12 +19,10 @@
 #
 #
 
-from mock import MagicMock, patch
-from os.path import dirname, realpath
-from sys import modules, path
 from unittest import TestCase, main
 
-path.insert(0, realpath(dirname(modules[__name__].__file__) + '/..'))
+from mock import MagicMock, patch
+
 from xintegtools.xbump.target_ebuild import TargetEbuildContent
 
 
@@ -123,7 +121,7 @@ XOV_BOARD_URI=%(xov_board_uri)s
             self.assertIn(value, my_ebuild.data)
 
     @patch('xintegtools.xbump.target_ebuild.open')
-    @patch('xintegtools.xbump.target_ebuild.exists')
+    @patch('os.path.exists')
     def test_write_into(self, mock_exists, mock_open):
         my_ebuild = TargetEbuildContent(self.data % self.data_values)
 

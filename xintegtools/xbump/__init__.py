@@ -18,5 +18,7 @@
 #
 #
 
-from ebuild_updater import TargetEbuildUpdater  # noqa
-from utils import error, info, warning, InvalidArgument  # noqa
+from __future__ import absolute_import
+
+from xintegtools.xbump.ebuild_updater import TargetEbuildUpdater  # noqa
+from xintegtools.xbump.utils import error, info, warning, InvalidArgument  # noqa

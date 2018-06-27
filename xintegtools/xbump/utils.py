@@ -22,25 +22,27 @@
 
 from __future__ import print_function
 
+import string
+
 from portage.output import colorize
 
 
 def error(text):
-    error = colorize('red', '* Error:')
+    error_ = colorize('red', '* Error:')
     text = colorize('bold', text)
-    print('%s %s' % (error, text))
+    print('%s %s' % (error_, text))
 
 
 def warning(text):
-    warning = colorize('yellow', '* Warning:')
+    warning_ = colorize('yellow', '* Warning:')
     text = colorize('bold', text)
-    print('%s %s' % (warning, text))
+    print('%s %s' % (warning_, text))
 
 
 def info(text):
-    info = colorize('green', '* Info:')
+    info_ = colorize('green', '* Info:')
     text = colorize('bold', text)
-    print('%s %s' % (info, text))
+    print('%s %s' % (info_, text))
 
 
 class InvalidArgument(ValueError):
@@ -49,10 +51,4 @@ class InvalidArgument(ValueError):
 
 def is_git_sha1(sha1):
     '''Tests if the value could be a SHA1.'''
-    if not isinstance(sha1, str): return False
-    l = len(sha1)
-    # 'man git-rev-parse', --short: ... The minimum length is 4.
-    if l < 4 or l > 40: return False
-    for i in sha1:
-        if i not in '0123456789abcdef': return False
-    return True
+    return isinstance(sha1, str) and (4 < len(sha1) <= 40) and all(i in string.hexdigits for i in sha1)

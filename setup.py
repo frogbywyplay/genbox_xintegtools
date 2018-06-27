@@ -83,7 +83,7 @@ class TestCommand(Command):
 
         with cov(self.distribution.packages):
             tests = TestLoader().loadTestsFromNames(testfiles)
-            t = TextTestRunner(verbosity=1)
+            t = TextTestRunner()
             ts = t.run(tests)
 
         if not ts.wasSuccessful():
@@ -127,9 +127,9 @@ setup(
         'xintegtools.xreport',
     ],
     scripts=[
-        'scripts/xbump',
         'scripts/xreport',
     ],
+    entry_points={'console_scripts': ['xbump = xintegtools.xbump.main:main']},
     long_description="""xintegtools for genbox like xbump, xreport""",
     cmdclass={
         'test': TestCommand,

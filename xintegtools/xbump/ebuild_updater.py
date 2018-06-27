@@ -19,22 +19,22 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
+from __future__ import absolute_import
 
-from ebuild import Ebuild
-from gitremote import GitRemote
-from target_ebuild import TargetEbuildContent
-from utils import error, info, warning, is_git_sha1
+import re
 
-from re import compile
+from xintegtools.xbump.ebuild import Ebuild
+from xintegtools.xbump.gitremote import GitRemote
+from xintegtools.xbump.target_ebuild import TargetEbuildContent
+from xintegtools.xbump.utils import error, info, warning, is_git_sha1
 
 
 class TargetEbuildUpdater(object):
     def __init__(self, ebuild, verbose=False):
         self.verbose = verbose
         self.template = Ebuild(ebuild, verbose=verbose)
-        f = open(self.template.abspath)
-        self.data = TargetEbuildContent(f.read())
-        f.close()
+        with open(self.template.abspath) as f:
+            self.data = TargetEbuildContent(f.read())
         repo_info = {'uri': self.data.uri, 'branch': self.data.branch, 'proto': 'git'}
         self.git = GitRemote(repo_info)
 
@@ -52,7 +52,7 @@ class TargetEbuildUpdater(object):
         if branch != self.data.branch:
             try:
                 self.data.branch = branch
-            except ValueError, e:
+            except ValueError as e:
                 error(e.message)
                 return False
         return True
@@ -70,15 +70,17 @@ class TargetEbuildUpdater(object):
             return False
         tag = self.git.get_tag_from_sha1(sha1)
         if tag:
-            if self.verbose: info('SHA1 %s is tagged as %s' % (sha1, tag))
+            if self.verbose:
+                info('SHA1 %s is tagged as %s' % (sha1, tag))
         else:
-            if self.verbose: error('No tag associated to SHA1 %s' % sha1)
+            if self.verbose:
+                error('No tag associated to SHA1 %s [%s]' % (sha1, self.git.repository))
             return False
 
         if sha1 != self.data.commit:
             try:
                 self.data.commit = sha1
-            except ValueError, e:
+            except ValueError as e:
                 error(e.message)
                 return False
         return True
@@ -86,9 +88,10 @@ class TargetEbuildUpdater(object):
     def update_overlays(self, overlays=str()):
         overlays_to_update = dict()
         for overlay in overlays.split(','):
-            if not overlay: continue
-            [name, revision] = overlay.split(':')
-            if name in self.data.overlays.keys():
+            if not overlay:
+                continue
+            name, revision = overlay.split(':')
+            if name in self.data.overlays:
                 # TODO: check revision exists in overlay for concerned branch
                 if not is_git_sha1(revision):
                     warning('Skip invalid revision %s for overlay %s.' % (revision, name))
@@ -107,15 +110,16 @@ class TargetEbuildUpdater(object):
                 continue
             try:
                 self.data.overlays = {name: overlay_revision}
-                if self.verbose: info('Update overlay %s from %s to %s' % (name, spec['revision'], overlay_revision))
-            except ValueError, e:
+                if self.verbose:
+                    info('Update overlay %s from %s to %s' % (name, spec['revision'], overlay_revision))
+            except ValueError as e:
                 error(e.message)
         return True
 
     def compute_version(self, use_tag=False, version=str()):
         my_version = str()
         origin = str()
-        ver_regexp = compile('(\d+)((\.\d+)*)')
+        ver_regexp = re.compile(r'(\d+)((\.\d+)*)')
         repo_info = {'uri': self.data.uri, 'branch': self.data.branch, 'proto': 'git'}
         if use_tag:
             origin = 'latest tag on branch %s' % repo_info['branch']
@@ -126,12 +130,13 @@ class TargetEbuildUpdater(object):
             my_version = ver_regexp.search(version).group()
         else:
             origin = 'template ebuild version'
-            num_regexp = compile('\d+')
+            num_regexp = re.compile(r'\d+')
             old_version = ver_regexp.search(self.template.version).group()
             splitted_version = num_regexp.findall(old_version)
             splitted_version[-1] = str(int(splitted_version[-1]) + 1)
             my_version = '.'.join(splitted_version)
-        if self.verbose: info('Version computed from %s: %s.' % (origin, my_version))
+        if self.verbose:
+            info('Version computed from %s: %s.' % (origin, my_version))
         return my_version
 
     def release_ebuild(self, version, force=False):

@@ -19,12 +19,7 @@
 #
 #
 
-from os.path import dirname, realpath
-from sys import modules, path
 from unittest import TestCase, main
-
-path.insert(0, realpath(dirname(modules[__name__].__file__) + '/..'))
-
 
 class EbuildTester(TestCase):
     def test_category(self):

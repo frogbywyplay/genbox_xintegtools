@@ -19,12 +19,10 @@
 #
 #
 
-from mock import patch
-from os.path import dirname, realpath
-from sys import modules, path
 from unittest import TestCase, main
 
-path.insert(0, realpath(dirname(modules[__name__].__file__) + '/..'))
+from mock import patch
+
 from xintegtools.xbump.gitremote import GitRemote
 
 
@@ -55,8 +53,8 @@ class GitRemoteTester(TestCase):
         data = str()
         mock_cmd.return_value = (data, str())
         self.assertFalse(git.tag_exists(str()))
-        for tag in self.tags.keys():
-            data = '%s\t\trefs/tags/%s\n' % (self.tags[tag], tag)
+        for tag, sha1 in self.tags.iteritems():
+            data = '%s\t\trefs/tags/%s\n' % (sha1, tag)
             mock_cmd.return_value = (data, str())
             self.assertTrue(git.tag_exists(tag))
 
@@ -120,8 +118,8 @@ class GitRemoteTester(TestCase):
         data = str()
         mock_cmd.return_value = (data, str())
         self.assertFalse(git.branch_exists(str()))
-        for branch in self.branches.keys():
-            data = '%s\t\trefs/heads/%s\n' % (self.branches[branch], branch)
+        for branch, sha1 in self.branches.iteritems():
+            data = '%s\t\trefs/heads/%s\n' % (sha1, branch)
             mock_cmd.return_value = (data, str())
             self.assertTrue(git.branch_exists(branch))
 

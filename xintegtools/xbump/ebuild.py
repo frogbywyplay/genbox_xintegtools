@@ -19,12 +19,13 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #
-
-from utils import InvalidArgument, error, info
+from __future__ import absolute_import
 
 from portage import db, root, settings
 from portage.exception import InvalidAtom
 from portage.versions import catpkgsplit
+
+from xintegtools.xbump.utils import InvalidArgument, error, info
 
 
 class Ebuild(object):
@@ -67,7 +68,7 @@ class Ebuild(object):
     @property
     def revision(self):
         my_cpv = catpkgsplit(self.cpv)
-        return int(0) if len(my_cpv) == 3 else int(my_cpv[3][1:])
+        return 0 if len(my_cpv) == 3 else int(my_cpv[3][1:])
 
     @property
     def abspath(self):
