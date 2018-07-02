@@ -21,7 +21,7 @@
 
 from unittest import TestCase, main
 
-from mock import MagicMock, patch
+from mock import MagicMock, patch, mock_open
 
 from xintegtools.xbump.target_ebuild import TargetEbuildContent
 
@@ -120,19 +120,18 @@ XOV_BOARD_URI=%(xov_board_uri)s
         for value in other_values.values():
             self.assertIn(value, my_ebuild.data)
 
-    @patch('xintegtools.xbump.target_ebuild.open')
+    @patch('__builtin__.open', new_callable=mock_open)
     @patch('os.path.exists')
-    def test_write_into(self, mock_exists, mock_open):
+    def test_write_into(self, mock_exists, mock_open_):
         my_ebuild = TargetEbuildContent(self.data % self.data_values)
 
         mock_exists.return_value = True
         self.assertFalse(my_ebuild.write_into('mock', force=False))
 
-        mock_open.return_value = MagicMock(spec=file)
         self.assertTrue(my_ebuild.write_into('mock', force=True))
 
         mock_exists.return_value = False
-        mock_open.side_effect = IOError(13)
+        mock_open_.side_effect = IOError(13)
         self.assertFalse(my_ebuild.write_into('mock'))
 
 

@@ -21,16 +21,15 @@
 
 from unittest import TestCase, main
 
-from mock import MagicMock, patch
+from mock import MagicMock, patch, mock_open
 
 from xintegtools.xbump.ebuild_updater import TargetEbuildUpdater
 
 
 class TargetEbuildUpdaterTester(TestCase):
     @patch('xintegtools.xbump.ebuild_updater.Ebuild')
-    @patch('xintegtools.xbump.ebuild_updater.open')
-    def test_is_target_ebuild(self, mock_open, mock_ebuild):
-        mock_open.return_value = MagicMock(spec=file)
+    @patch('__builtin__.open', new_callable=mock_open)
+    def test_is_target_ebuild(self, mock_open_, mock_ebuild):
 
         updater = TargetEbuildUpdater('mock')
         mock_ebuild.inherited.return_value = 'git-r3 eutils toolchain-funcs multilib'
@@ -41,9 +40,8 @@ class TargetEbuildUpdaterTester(TestCase):
 
     @patch('xintegtools.xbump.ebuild_updater.GitRemote')
     @patch('xintegtools.xbump.ebuild_updater.TargetEbuildContent')
-    @patch('xintegtools.xbump.ebuild_updater.open')
-    def test_update_branch(self, mock_open, mock_targetebuildcontent, mock_git):
-        mock_open.return_value = MagicMock(spec=file)
+    @patch('__builtin__.open', new_callable=mock_open)
+    def test_update_branch(self, mock_open_, mock_targetebuildcontent, mock_git):
 
         updater = TargetEbuildUpdater('mock')
         self.assertFalse(updater.update_branch(str()))
@@ -60,9 +58,8 @@ class TargetEbuildUpdaterTester(TestCase):
 
     @patch('xintegtools.xbump.ebuild_updater.GitRemote')
     @patch('xintegtools.xbump.ebuild_updater.TargetEbuildContent')
-    @patch('xintegtools.xbump.ebuild_updater.open')
-    def test_update_revision(self, mock_open, mock_targetebuildcontent, mock_git):
-        mock_open.return_value = MagicMock(spec=file)
+    @patch('__builtin__.open', new_callable=mock_open)
+    def test_update_revision(self, mock_open_, mock_targetebuildcontent, mock_git):
 
         updater = TargetEbuildUpdater('mock')
         mock_git.return_value.resolve_branch.return_value = str()
@@ -84,9 +81,8 @@ class TargetEbuildUpdaterTester(TestCase):
 
     @patch('xintegtools.xbump.ebuild_updater.GitRemote')
     @patch('xintegtools.xbump.ebuild_updater.TargetEbuildContent')
-    @patch('xintegtools.xbump.ebuild_updater.open')
-    def test_update_overlays(self, mock_open, mock_targetebuildcontent, mock_git):
-        mock_open.return_value = MagicMock(spec=file)
+    @patch('__builtin__.open', new_callable=mock_open)
+    def test_update_overlays(self, mock_open_, mock_targetebuildcontent, mock_git):
 
         updater = TargetEbuildUpdater('mock')
         self.assertTrue(updater.update_overlays(str()))
@@ -99,15 +95,14 @@ class TargetEbuildUpdaterTester(TestCase):
     @patch('xintegtools.xbump.ebuild_updater.GitRemote')
     @patch('xintegtools.xbump.ebuild_updater.TargetEbuildContent')
     @patch('xintegtools.xbump.ebuild_updater.Ebuild')
-    @patch('xintegtools.xbump.ebuild_updater.open')
-    def test_compute_revision(self, mock_open, mock_ebuild, mock_targetebuildcontent, mock_git):
+    @patch('__builtin__.open', new_callable=mock_open)
+    def test_compute_revision(self, mock_open_, mock_ebuild, mock_targetebuildcontent, mock_git):
         pass
 
     @patch('xintegtools.xbump.ebuild_updater.TargetEbuildContent')
     @patch('xintegtools.xbump.ebuild_updater.Ebuild')
-    @patch('xintegtools.xbump.ebuild_updater.open')
-    def test_release_ebuild(self, mock_open, mock_ebuild, mock_targetebuildcontent):
-        mock_open.return_value = MagicMock(spec=file)
+    @patch('__builtin__.open', new_callable=mock_open)
+    def test_release_ebuild(self, mock_open_, mock_ebuild, mock_targetebuildcontent):
         mock_targetebuildcontent.return_value.write_into.return_value = True
         mock_ebuild.return_value.overlay.return_value = '/var/lib/layman/targets'
         mock_ebuild.return_value.category.return_value = 'product-targets'
