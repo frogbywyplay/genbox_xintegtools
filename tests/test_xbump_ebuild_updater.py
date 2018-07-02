@@ -21,7 +21,7 @@
 
 from unittest import TestCase, main
 
-from mock import MagicMock, patch, mock_open
+from mock import patch, mock_open
 
 from xintegtools.xbump.ebuild_updater import TargetEbuildUpdater
 

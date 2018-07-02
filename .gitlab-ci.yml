@@ -1,0 +1,37 @@
+
+unittest:
+  stage: test
+  image: docker.wyplay.com/tools/genbox:latest
+  tags:
+    - bash
+  before_script:
+    - git clone --quiet --single-branch --branch 18.01 https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.wyplay.com/frogbywyplay/overlay_gentoo /usr/portage
+    - emerge --unmerge xintegtools
+    - http_proxy=http://repos-proxy.wyplay.com:3128 emerge dev-python/mock
+  script:
+    - python setup.py test
+
+flake8:
+  stage: test
+  image: docker.wyplay.com/tools/genbox:latest
+  tags:
+    - bash
+  before_script:
+    - git clone --quiet --single-branch --branch 18.01 https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.wyplay.com/frogbywyplay/overlay_gentoo /usr/portage
+    - emerge --unmerge xintegtools
+    - http_proxy=http://repos-proxy.wyplay.com:3128 emerge dev-python/mock dev-python/flake8
+  script:
+    - flake8 setup.py xintegtools tests
+
+# TODO: put setuptools_scm 1.15.0 manually on packages.wyplay.com because it's not anymore in distfiles.gentoo.org
+#pylint:
+#  stage: test
+#  image: docker.wyplay.com/tools/genbox:latest
+#  tags:
+#    - bash
+#  before_script:
+#    - git clone --quiet --single-branch --branch 18.01 https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.wyplay.com/frogbywyplay/overlay_gentoo /usr/portage
+#    - emerge --unmerge xintegtools
+#    - http_proxy=http://repos-proxy.wyplay.com:3128 emerge dev-python/mock dev-python/pylint
+#  script:
+#    - pylint setup.py xintegtools/xbump tests/test_xbump*
