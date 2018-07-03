@@ -116,7 +116,7 @@ class FmtCommand(Command):
 
 setup(
     name='xintegtools',
-    version='3.1.1',
+    version='3.1.3',
     description='Xintegtools for genbox',
     author='Wyplay',
     author_email='noreply@wyplay.com',
