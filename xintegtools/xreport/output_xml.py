@@ -27,6 +27,9 @@ from xutils import die
 
 from xintegtools.xreport.output import XReportOutput, XCompareOutput
 
+# a bit ugly ?
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 def cpv_tuple_to_xml(tag, cpv_tuple):
     return etree.Element(tag, name=cpv_tuple[1], version=cpv_tuple[2], category=cpv_tuple[0])
