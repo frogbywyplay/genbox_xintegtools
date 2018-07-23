@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright (C) 2006-2014 Wyplay, All Rights Reserved.
+# Copyright (C) 2006-2018 Wyplay, All Rights Reserved.
 # This file is part of xintegtools.
 #
 # xintegtools is free software: you can redistribute it and/or modify
@@ -116,7 +116,7 @@ class FmtCommand(Command):
 
 setup(
     name='xintegtools',
-    version='3.1.3',
+    version='3.1.5',
     description='Xintegtools for genbox',
     author='Wyplay',
     author_email='noreply@wyplay.com',

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2014 Wyplay, All Rights Reserved.
+# Copyright (C) 2006-2018 Wyplay, All Rights Reserved.
 # This file is part of xintegtools.
 #
 # xintegtools is free software: you can redistribute it and/or modify
@@ -235,11 +235,13 @@ class XPackage(object):  # pylint: disable=too-many-instance-attributes
             # No use flags for this package
             return
 
-        self.uses = {}
+        # remove leading '+' or '-' character from IUSE flags.
+        safe_iuse = [x.lstrip('+').lstrip('-') for x in iuse]
 
+        self.uses = {}
         with open(os.path.join(vdbdir, 'USE')) as fl:
             use = fl.readline().split()
-        for flag in iuse:
+        for flag in safe_iuse:
             self.uses[flag] = flag in use
 
     def _load_license(self, vdbdir):
