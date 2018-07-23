@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2014 Wyplay, All Rights Reserved.
+# Copyright (C) 2006-2018 Wyplay, All Rights Reserved.
 # This file is part of xintegtools.
 #
 # xintegtools is free software: you can redistribute it and/or modify
@@ -116,7 +116,7 @@ class XReportXMLOutput(XReportOutput):
 
         if self.errors_only and (pkg.res == total_files):
             return
-        for file_ in []:
+        for file_ in pkg.pkgfiles:
             if self.errors_only and not (file_.status and len(file_.status)):
                 continue
             # Omit directories (not really useful)
